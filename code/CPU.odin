@@ -5,7 +5,7 @@ cpu :: struct
     RegisterA : u8,
     RegisterX : u8,
     RegisterY : u8,
-    Status : u8,
+    Status : cpu_flags,
     ProgramCounter : u16,
     Memory : [0xFFFF]u8,
 }
@@ -23,6 +23,10 @@ addressing_mode :: enum
     INDIRECT_Y,
     NONEADDRESSING,
 }
+
+flags :: enum{CARRY, ZERO, INTERRUPUT_DISABLE, DECIMAL_MODE, BREAK, BREAK2, OVERFLOW, NEGATIV,};
+
+cpu_flags :: bit_set[flags; u8];
 
 MemReadu16 :: proc(Cpu : ^cpu, Pos : u16) -> u16
 {
@@ -54,7 +58,7 @@ Reset :: proc(Cpu : ^cpu)
     Cpu.RegisterA = 0;
     Cpu.RegisterX = 0;
     //Cpu.RegisterY = 0;
-    Cpu.Status = 0;
+    Cpu.Status = nil;
     
     Cpu.ProgramCounter = MemReadu16(Cpu, 0xFFFC);
 }
@@ -89,6 +93,10 @@ Run :: proc (Cpu : ^cpu)
         
         switch Code 
         {
+            case 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71:
+            {
+                Adc(Cpu, Opcode.AddressingMode);
+            }
             case 0xA9 , 0xA5 , 0xAD , 0xBD , 0xB9 , 0xA1 , 0xB1:
             {
                 Lda(Cpu, Opcode.AddressingMode);
@@ -123,6 +131,34 @@ Run :: proc (Cpu : ^cpu)
     }
 }
 
+AddToRegisterA :: proc(Cpu : ^cpu, Value : u8)
+{
+    // TODO(Barret5Ocal): Not sure about this one. learn more about the differences between the carry and overflow flag
+    Sum := Cpu.RegisterA + Value + (cpu_flags.CARRY in Cpu.Status ? 1 : 0); 
+    
+    Carry := Sum < 0xff; 
+    
+    if Carry 
+    {
+        Cpu.Status += {.CARRY};
+    }
+    else 
+    { 
+        Cpu.Status -= {.CARRY};
+    }
+    
+    
+}
+
+Adc :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Value := MemRead(Cpu, Addr);
+    
+    AddToRegisterA(Cpu, Value);
+    
+}
+
 Lda :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 {
     Addr := GetOperandAddress(Cpu, AddessingMode);
@@ -154,20 +190,20 @@ UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)
 {
     if Result == 0
     {
-        Cpu.Status = Cpu.Status | 0b0000_0010;
+        Cpu.Status = Cpu.Status + {.ZERO};
     }
     else
     {
-        Cpu.Status = Cpu.Status & 0b1111_1101;
+        Cpu.Status = Cpu.Status - {.ZERO};
     }
     
     if Result & 0b1000_0000 != 0
     {
-        Cpu.Status = Cpu.Status | 0b1000_0000;
+        Cpu.Status = Cpu.Status + {.NEGATIV};
     }
     else 
     {
-        Cpu.Status = Cpu.Status & 0b0111_1111;
+        Cpu.Status = Cpu.Status - {.NEGATIV};
     }
 }
 
@@ -258,8 +294,8 @@ test :: proc()
     LoadAndRun(&Cpu, {0xa9, 0x05, 0x00});
     
     assert(Cpu.RegisterA == 5);
-    assert(Cpu.Status & 0b0000_0010 == 0);
-    assert(Cpu.Status & 0b1000_0000 == 0);
+    assert(Cpu.Status & {.ZERO} == nil);
+    assert(Cpu.Status & {.NEGATIV} == nil);
 }
 
 test2 :: proc()
@@ -268,7 +304,7 @@ test2 :: proc()
     
     LoadAndRun(&Cpu, {0xa5, 0x10, 0x00});
     
-    assert(Cpu.Status & 0b0000_0010 == 0b10);
+    assert(Cpu.Status - {.ZERO} == nil);
     
 }
 

@@ -52,6 +52,13 @@ Opcodes : []opcode =
     {0x21, "AND", 2, 6, addressing_mode.INDIRECT_X},
     {0x31, "AND", 2, 5/*+1 if page crossed*/, addressing_mode.INDIRECT_Y},
     
+    //ASL
+    {0x0A, "ASL", 1, 2, addressing_mode.NONEADDRESSING},
+    {0x06, "ASL", 2, 5, addressing_mode.ZEROPAGE},
+    {0x16, "ASL", 2, 6, addressing_mode.ZEROPAGE_X},
+    {0x0E, "ASL", 3, 6, addressing_mode.ABSOLUTE},
+    {0x1E, "ASL", 3, 7, addressing_mode.ABSOLUTE_X},
+    
     
 };
 

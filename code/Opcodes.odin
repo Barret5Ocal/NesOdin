@@ -42,6 +42,16 @@ Opcodes : []opcode =
     {0x61, "ADC", 2, 6, addressing_mode.INDIRECT_X}, 
     {0x71, "ADC", 2, 5/*+1 if page crossed*/, addressing_mode.INDIRECT_Y},
     
+    //AND
+    {0x29, "AND", 2, 2, addressing_mode.IMMEDIATE},
+    {0x25, "AND", 2, 3, addressing_mode.ZEROPAGE},
+    {0x35, "AND", 2, 4, addressing_mode.ZEROPAGE_X},
+    {0x2D, "AND", 2, 4, addressing_mode.ABSOLUTE},
+    {0x3D, "AND", 3, 4/*+1 if page crossed*/, addressing_mode.ABSOLUTE_X},
+    {0x39, "AND", 3, 4/*+1 if page crossed*/, addressing_mode.ABSOLUTE_Y},
+    {0x21, "AND", 2, 6, addressing_mode.INDIRECT_X},
+    {0x31, "AND", 2, 5/*+1 if page crossed*/, addressing_mode.INDIRECT_Y},
+    
     
 };
 

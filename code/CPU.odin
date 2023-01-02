@@ -131,14 +131,18 @@ Run :: proc (Cpu : ^cpu)
     }
 }
 
+SetRegisterA :: proc(Cpu : ^cpu, Result : u8)
+{
+    Cpu.RegisterA = Result;
+    UpdateZeroAndNegativeFlags(Cpu, Result);
+}
+
 AddToRegisterA :: proc(Cpu : ^cpu, Value : u8)
 {
-    // TODO(Barret5Ocal): Not sure about this one. learn more about the differences between the carry and overflow flag
-    Sum := Cpu.RegisterA + Value + (cpu_flags.CARRY in Cpu.Status ? 1 : 0); 
+    // NOTE(Barret5Ocal): Carry Flay is set if you overflow a unsigned addition or subtraction. Overflow is set if you overflow a signed addition or subtraction.
+    Sum : u16 = cast(u16)Cpu.RegisterA + cast(u16)Value + (cpu_flags.CARRY in Cpu.Status ? 1 : 0); 
     
-    Carry := Sum < 0xff; 
-    
-    if Carry 
+    if Carry := Sum > 0xff; Carry 
     {
         Cpu.Status += {.CARRY};
     }
@@ -147,7 +151,18 @@ AddToRegisterA :: proc(Cpu : ^cpu, Value : u8)
         Cpu.Status -= {.CARRY};
     }
     
+    Result := cast(u8)Sum;
     
+    if (Value ~ Result) & (Result ~ Cpu.RegisterA) & 0x80 != 0
+    {
+        Cpu.Status += {.OVERFLOW};
+    }
+    else
+    {
+        Cpu.Status -= {.OVERFLOW};
+    }
+    
+    SetRegisterA(Cpu, Result);
 }
 
 Adc :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
@@ -156,7 +171,15 @@ Adc :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
     Value := MemRead(Cpu, Addr);
     
     AddToRegisterA(Cpu, Value);
+}
+
+And :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Value := MemRead(Cpu, Addr);
     
+    Result := Cpu.RegisterA & Value;
+    SetRegisterA(Cpu, Result);
 }
 
 Lda :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)

@@ -182,6 +182,41 @@ And :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
     SetRegisterA(Cpu, Result);
 }
 
+AslAccumulator :: proc(Cpu : ^cpu)
+{
+    Data := Cpu.RegisterA;
+    if Data >> 7 == 1 
+    {
+        Cpu.Status += {.CARRY};
+    }
+    else 
+    {
+        Cpu.Status -= {.CARRY};
+    }
+    
+    Data = Data << 1; 
+    SetRegisterA(Cpu, Data);
+}
+
+Asl :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Data := MemRead(Cpu, Addr);
+    
+    if Data >> 7 == 1 
+    {
+        Cpu.Status += {.CARRY};
+    }
+    else 
+    {
+        Cpu.Status -= {.CARRY};
+    }
+    
+    Data = Data << 1; 
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+}
+
 Lda :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 {
     Addr := GetOperandAddress(Cpu, AddessingMode);

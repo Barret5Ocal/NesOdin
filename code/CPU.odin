@@ -93,34 +93,28 @@ Run :: proc (Cpu : ^cpu)
         
         switch Code 
         {
-            case 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71:
-            {
-                Adc(Cpu, Opcode.AddressingMode);
-            }
-            case 0xA9 , 0xA5 , 0xAD , 0xBD , 0xB9 , 0xA1 , 0xB1:
-            {
-                Lda(Cpu, Opcode.AddressingMode);
-                //Cpu.ProgramCounter += 1;
-            }
-            case 0x85 , 0x95 , 0x8D , 0x9D , 0x99 , 0x81 , 0x91:
-            {
-                Sta(Cpu, Opcode.AddressingMode);
-                //Cpu.ProgramCounter += 1;
-            }
-            case 0xAA: 
-            {
-                Tax(Cpu);
-            }
-            case 0xE8:
-            {
-                Inx(Cpu);
-            }
+            case 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71: Adc(Cpu, Opcode.AddressingMode);
             
+            case 0xA9 , 0xA5 , 0xAD , 0xBD , 0xB9 , 0xA1 , 0xB1: Lda(Cpu, Opcode.AddressingMode);
             
-            case 0x00:
-            {
-                return;
-            }
+            case 0x85 , 0x95 , 0x8D , 0x9D , 0x99 , 0x81 , 0x91: Sta(Cpu, Opcode.AddressingMode);
+            
+            case 0xAA: Tax(Cpu);
+            
+            case 0xE8: Inx(Cpu);
+            
+            case 0x0A: AslAccumulator(Cpu);
+            
+            case 0x06, 0x16, 0x0E, 0x1E: Asl(Cpu, Opcode.AddressingMode);
+            
+            case 0x90: Branch(Cpu, cpu_flags.CARRY not_in Cpu.Status);
+            case 0xB0: Branch(Cpu, cpu_flags.CARRY in Cpu.Status);
+            case 0xF0: Branch(Cpu, cpu_flags.ZERO in Cpu.Status);
+            
+            case 0x24, 0x2C: Bit(Cpu, Opcode.AddressingMode);
+            
+            case 0x00: return;
+            
         }
         
         if ProgramCounterState == Cpu.ProgramCounter 
@@ -135,6 +129,16 @@ SetRegisterA :: proc(Cpu : ^cpu, Result : u8)
 {
     Cpu.RegisterA = Result;
     UpdateZeroAndNegativeFlags(Cpu, Result);
+}
+
+Branch :: proc(Cpu : ^cpu, Flag : bool)
+{
+    if Flag
+    {
+        Jump : i8 = cast(i8)MemRead(Cpu, Cpu.ProgramCounter);
+        JumpAdd := Cpu.ProgramCounter + 1 + cast(u16)Jump;
+        Cpu.ProgramCounter = JumpAdd;
+    }
 }
 
 AddToRegisterA :: proc(Cpu : ^cpu, Value : u8)
@@ -215,6 +219,11 @@ Asl :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
     Data = Data << 1; 
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
+}
+
+Bit :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    
 }
 
 Lda :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)

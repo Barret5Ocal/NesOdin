@@ -59,6 +59,14 @@ Opcodes : []opcode =
     {0x0E, "ASL", 3, 6, addressing_mode.ABSOLUTE},
     {0x1E, "ASL", 3, 7, addressing_mode.ABSOLUTE_X},
     
+    //Branching
+    {0x90, "BCC", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    {0xB0, "BCS", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    {0xF0, "BEQ", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    
+    {0x24, "BIT", 2, 3, addressing_mode.ZEROPAGE},
+    {0x2C, "BIT", 3, 4, addressing_mode.ABSOLUTE},
+    
     
 };
 

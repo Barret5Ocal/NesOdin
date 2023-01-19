@@ -113,6 +113,8 @@ Run :: proc (Cpu : ^cpu)
             
             case 0x24, 0x2C: Bit(Cpu, Opcode.AddressingMode);
             
+            case 0x30: Branch(Cpu, cpu_flags.NEGATIV in Cpu.Status);
+            
             case 0x00: return;
             
         }
@@ -223,6 +225,35 @@ Asl :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 
 Bit :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 {
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Value := MemRead(Cpu, Addr);
+    Result := Cpu.RegisterA & Value;
+    if Result == 0 
+    {
+        Cpu.Status += {.ZERO};
+    }
+    else 
+    {
+        Cpu.Status -= {.ZERO};
+    }
+    
+    if Value & 0b10000000 > 0
+    {
+        Cpu.Status += {.NEGATIV};
+    }
+    else 
+    {
+        Cpu.Status -= {.NEGATIV};
+    }
+    
+    if Value & 0b01000000 > 0
+    {
+        Cpu.Status += {.OVERFLOW};
+    }
+    else 
+    {
+        Cpu.Status -= {.OVERFLOW};
+    }
     
 }
 

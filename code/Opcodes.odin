@@ -67,6 +67,8 @@ Opcodes : []opcode =
     {0x24, "BIT", 2, 3, addressing_mode.ZEROPAGE},
     {0x2C, "BIT", 3, 4, addressing_mode.ABSOLUTE},
     
+    {0x30, "BMI", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    
     
 };
 

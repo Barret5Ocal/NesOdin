@@ -68,8 +68,10 @@ Opcodes : []opcode =
     {0x2C, "BIT", 3, 4, addressing_mode.ABSOLUTE},
     
     {0x30, "BMI", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
-    
-    
+    {0xD0, "BNE", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    {0x10, "BPL", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    {0x50, "BVC", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    {0x70, "BVS", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
 };
 
 CreateOpCodeMap :: proc() -> map[u8]opcode

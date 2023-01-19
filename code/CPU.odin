@@ -114,6 +114,10 @@ Run :: proc (Cpu : ^cpu)
             case 0x24, 0x2C: Bit(Cpu, Opcode.AddressingMode);
             
             case 0x30: Branch(Cpu, cpu_flags.NEGATIV in Cpu.Status);
+            case 0xD0: Branch(Cpu, cpu_flags.ZERO not_in Cpu.Status);
+            case 0x10: Branch(Cpu, cpu_flags.NEGATIV not_in Cpu.Status);
+            case 0x50: Branch(Cpu, cpu_flags.OVERFLOW not_in Cpu.Status);
+            case 0x70: Branch(Cpu, cpu_flags.OVERFLOW in Cpu.Status);
             
             case 0x00: return;
             

@@ -119,6 +119,14 @@ Run :: proc (Cpu : ^cpu)
             case 0x50: Branch(Cpu, cpu_flags.OVERFLOW not_in Cpu.Status);
             case 0x70: Branch(Cpu, cpu_flags.OVERFLOW in Cpu.Status);
             
+            case 0x18: ClearCarryFlag(Cpu);
+            case 0xD8: Cpu.Status -= {.DECIMAL_MODE};
+            case 0x58: Cpu.Status -= {.INTERRUPUT_DISABLE};
+            case 0xB8: Cpu.Status -= {.OVERFLOW};
+            
+            case 0xC9, 0xC5, 0xD5, 0xCD, 0xDD, 0xD9, 0xC1, 0xD1: Compare(Cpu, Opcode.AddressingMode, Cpu.RegisterA);
+            
+            
             case 0x00: return;
             
         }
@@ -137,6 +145,16 @@ SetRegisterA :: proc(Cpu : ^cpu, Result : u8)
     UpdateZeroAndNegativeFlags(Cpu, Result);
 }
 
+SetCarryFlag :: proc(Cpu : ^cpu)
+{
+    Cpu.Status += {.CARRY};
+}
+
+ClearCarryFlag :: proc(Cpu : ^cpu)
+{
+    Cpu.Status -= {.CARRY};
+}
+
 Branch :: proc(Cpu : ^cpu, Flag : bool)
 {
     if Flag
@@ -145,6 +163,23 @@ Branch :: proc(Cpu : ^cpu, Flag : bool)
         JumpAdd := Cpu.ProgramCounter + 1 + cast(u16)Jump;
         Cpu.ProgramCounter = JumpAdd;
     }
+}
+
+Compare :: proc(Cpu : ^cpu, AddressingMode : addressing_mode, Value : u8)
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    
+    if Data <= Value
+    {
+        Cpu.Status += {.CARRY};
+    }
+    else 
+    {
+        Cpu.Status -= {.CARRY};
+    }
+    
+    UpdateZeroAndNegativeFlags(Cpu, Value - Data);
 }
 
 AddToRegisterA :: proc(Cpu : ^cpu, Value : u8)

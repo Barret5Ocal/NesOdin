@@ -72,6 +72,23 @@ Opcodes : []opcode =
     {0x10, "BPL", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
     {0x50, "BVC", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
     {0x70, "BVS", 2, 2/*(+1 if branch succeeds +2 if to a new page)*/, addressing_mode.NONEADDRESSING},
+    
+    {0x18, "CLC", 1, 2, addressing_mode.NONEADDRESSING},
+    {0xD8, "CLD", 1, 2, addressing_mode.NONEADDRESSING},
+    {0x58, "CLI", 1, 2, addressing_mode.NONEADDRESSING},
+    {0xB8, "CLV", 1, 2, addressing_mode.NONEADDRESSING},
+    
+    {0xC9, "CMP", 2, 2, addressing_mode.IMMEDIATE},
+    {0xC5, "CMP", 2, 3, addressing_mode.ZEROPAGE},
+    {0xD5, "CMP", 2, 4, addressing_mode.ZEROPAGE_X},
+    {0xCD, "CMP", 3, 4, addressing_mode.ABSOLUTE},
+    {0xDD, "CMP", 3, 4/*+1 if page crossed*/, addressing_mode.ABSOLUTE_X},
+    {0xD9, "CMP", 3, 4/*+1 if page crossed*/, addressing_mode.ABSOLUTE_Y},
+    {0xC1, "CMP", 2, 6, addressing_mode.INDIRECT_X},
+    {0xD1, "CMP", 2, 5/*+1 if page crossed*/, addressing_mode.INDIRECT_Y},
+    
+    
+    
 };
 
 CreateOpCodeMap :: proc() -> map[u8]opcode

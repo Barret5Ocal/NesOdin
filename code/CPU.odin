@@ -126,6 +126,11 @@ Run :: proc (Cpu : ^cpu)
             
             case 0xC9, 0xC5, 0xD5, 0xCD, 0xDD, 0xD9, 0xC1, 0xD1: Compare(Cpu, Opcode.AddressingMode, Cpu.RegisterA);
             
+            case 0xE0, 0xE4, 0xEC: Compare(Cpu, Opcode.AddressingMode, Cpu.RegisterX);
+            
+            case 0xC0, 0xC4, 0xCC: Compare(Cpu, Opcode.AddressingMode, Cpu.RegisterY);
+            
+            case 0xC6, 0xD6, 0xCE, 0xDE: Dec(Cpu, Opcode.AddressingMode);
             
             case 0x00: return;
             
@@ -321,6 +326,16 @@ Sta :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
 {
     Addr := GetOperandAddress(Cpu, AddressingMode);
     MemWrite(Cpu, Addr, Cpu.RegisterA);
+}
+
+Dec :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    Data -= 1; 
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+    return Data; 
 }
 
 UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)

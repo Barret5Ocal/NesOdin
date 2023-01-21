@@ -87,6 +87,18 @@ Opcodes : []opcode =
     {0xC1, "CMP", 2, 6, addressing_mode.INDIRECT_X},
     {0xD1, "CMP", 2, 5/*+1 if page crossed*/, addressing_mode.INDIRECT_Y},
     
+    {0xE0, "CPX", 2, 2, addressing_mode.IMMEDIATE},
+    {0xE4, "CPX", 2, 3, addressing_mode.ZEROPAGE},
+    {0xEC, "CPX", 3, 4, addressing_mode.ABSOLUTE},
+    
+    {0xC0, "CPY", 2, 2, addressing_mode.IMMEDIATE},
+    {0xC4, "CPY", 2, 3, addressing_mode.ZEROPAGE},
+    {0xCC, "CPY", 3, 4, addressing_mode.ABSOLUTE},
+    
+    {0xC6, "DEC", 2, 5, addressing_mode.ZEROPAGE},
+    {0xD6, "DEC", 2, 6, addressing_mode.ZEROPAGE_X},
+    {0xCE, "DEC", 3, 6, addressing_mode.ABSOLUTE},
+    {0xDE, "DEC", 3, 7, addressing_mode.ABSOLUTE_X},
     
     
 };

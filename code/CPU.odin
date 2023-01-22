@@ -132,6 +132,12 @@ Run :: proc (Cpu : ^cpu)
             
             case 0xC6, 0xD6, 0xCE, 0xDE: Dec(Cpu, Opcode.AddressingMode);
             
+            case 0xCA: Dex(Cpu);
+            
+            case 0x88: Dey(Cpu);
+            
+            case 0x49, 0x45, 0x55, 0x4D, 0x5D, 0x59, 0x41, 0x51: Eor(Cpu, Opcode.AddressingMode);
+            
             case 0x00: return;
             
         }
@@ -336,6 +342,26 @@ Dec :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
     return Data; 
+}
+
+Dex :: proc (Cpu : ^cpu)
+{
+    Cpu.RegisterX -= 1;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterX);
+}
+
+
+Dey :: proc (Cpu : ^cpu)
+{
+    Cpu.RegisterY -= 1;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterY);
+}
+
+Eor :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Value := MemRead(Cpu, Addr);
+    SetRegisterA(Cpu, Value ~ Cpu.RegisterA);
 }
 
 UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)

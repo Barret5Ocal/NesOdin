@@ -103,6 +103,8 @@ Run :: proc (Cpu : ^cpu)
             
             case 0xE8: Inx(Cpu);
             
+            case 0xC8: Iny(Cpu);
+            
             case 0x0A: AslAccumulator(Cpu);
             
             case 0x06, 0x16, 0x0E, 0x1E: Asl(Cpu, Opcode.AddressingMode);
@@ -137,6 +139,33 @@ Run :: proc (Cpu : ^cpu)
             case 0x88: Dey(Cpu);
             
             case 0x49, 0x45, 0x55, 0x4D, 0x5D, 0x59, 0x41, 0x51: Eor(Cpu, Opcode.AddressingMode);
+            
+            case 0xE6, 0xF6, 0xEE, 0xFE: Inc(Cpu, Opcode.AddressingMode);
+            
+            case 0x4C: 
+            {
+                Addr := MemReadu16(Cpu, Cpu.ProgramCounter);
+                Cpu.ProgramCounter = Addr;
+            }
+            
+            case 0x6C: 
+            {
+                Mem := MemReadu16(Cpu, Cpu.ProgramCounter);
+                
+                IndirectRef : u16;
+                if Mem & 0x00FF == 0x00FF
+                {
+                    Lo := MemRead(Cpu, cast(u16)Mem);
+                    Hi := MemRead(Cpu, cast(u16)Mem & 0xFF00);
+                    IndirectRef = (cast(u16)Hi) << 8 | (cast(u16)Lo);
+                }
+                else 
+                {
+                    IndirectRef = MemReadu16(Cpu, Mem);
+                }
+            }
+            
+            
             
             case 0x00: return;
             
@@ -328,6 +357,13 @@ Inx :: proc(Cpu : ^cpu)
     UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterX);
 }
 
+
+Iny :: proc(Cpu : ^cpu)
+{
+    Cpu.RegisterY += 1;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterY);
+}
+
 Sta :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
 {
     Addr := GetOperandAddress(Cpu, AddressingMode);
@@ -362,6 +398,16 @@ Eor :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
     Addr := GetOperandAddress(Cpu, AddressingMode);
     Value := MemRead(Cpu, Addr);
     SetRegisterA(Cpu, Value ~ Cpu.RegisterA);
+}
+
+Inc :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    Data += 1;
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+    return Data; 
 }
 
 UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)

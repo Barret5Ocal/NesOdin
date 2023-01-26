@@ -1,11 +1,15 @@
 package NES
 
+STACK: u16 : 0x0100;
+STACK_RESET: u8 : 0xfd;
+
 cpu :: struct
 {
     RegisterA : u8,
     RegisterX : u8,
     RegisterY : u8,
     Status : cpu_flags,
+    StackPointer : u8,
     ProgramCounter : u16,
     Memory : [0xFFFF]u8,
 }
@@ -61,6 +65,7 @@ Reset :: proc(Cpu : ^cpu)
     Cpu.Status = nil;
     
     Cpu.ProgramCounter = MemReadu16(Cpu, 0xFFFC);
+    Cpu.StackPointer = STACK_RESET;
 }
 
 Load :: proc(Cpu : ^cpu, Program : [dynamic]u8)

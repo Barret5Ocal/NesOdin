@@ -170,7 +170,18 @@ Run :: proc (Cpu : ^cpu)
                 }
             }
             
+            case 0x20: 
+            {
+                StackPushu16(Cpu, Cpu.ProgramCounter + 2 - 1);
+                TargetAddr := MemReadu16(Cpu, Cpu.ProgramCounter);
+                Cpu.ProgramCounter = TargetAddr; 
+            }
             
+            case 0xA2, 0xA6, 0xB6, 0xAE, 0xBE: Ldx(Cpu, Opcode.AddressingMode);
+            
+            case 0xA0, 0xA4, 0xB4, 0xAC, 0xBC: Ldy(Cpu, Opcode.AddressingMode);
+            
+            case 0x46, 0x56, 0x4E, 0x5E: Lsr(Cpu, Opcode.AddressingMode);
             
             case 0x00: return;
             
@@ -350,6 +361,25 @@ Lda :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
     UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterA);
 }
 
+
+Ldx :: proc (Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Value := MemRead(Cpu, Addr);
+    
+    Cpu.RegisterX = Value;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterX);
+}
+
+Ldy :: proc (Cpu : ^cpu, AddessingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddessingMode);
+    Value := MemRead(Cpu, Addr);
+    
+    Cpu.RegisterY = Value;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterY);
+}
+
 Tax :: proc(Cpu : ^cpu)
 {
     Cpu.RegisterX = Cpu.RegisterA;
@@ -413,6 +443,53 @@ Inc :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
     return Data; 
+}
+
+Lsr :: proc (Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    if Data & 1 == 1 
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data >> 1; 
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+    return Data;
+}
+
+StackPop :: proc (Cpu : ^cpu) -> u8
+{
+    Cpu.StackPointer += 1; 
+    return MemRead(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer);
+}
+
+StackPush :: proc (Cpu : ^cpu, Data : u8) 
+{
+    MemWrite(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer, Data);
+    Cpu.StackPointer -= 1;  
+}
+
+StackPushu16 :: proc (Cpu : ^cpu, Data : u16)
+{
+    Lo := cast(u8)(Data >> 8);
+    Hi := cast(u8)(Data & 0xff);
+    StackPush(Cpu, Hi);
+    StackPush(Cpu, Lo);
+}
+
+StackPopu16 :: proc (Cpu : ^cpu) -> u16
+{
+    Lo : u16 = cast(u16)StackPop(Cpu);
+    Hi : u16 = cast(u16)StackPop(Cpu);
+    
+    return Hi << 8 | Lo; 
+    
 }
 
 UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)

@@ -183,6 +183,15 @@ Run :: proc (Cpu : ^cpu)
             
             case 0x46, 0x56, 0x4E, 0x5E: Lsr(Cpu, Opcode.AddressingMode);
             
+            case 0x09, 0x05, 0x15, 0x0D, 0x1D, 0x19, 0x01, 0x11: Ora(Cpu, Opcode.AddressingMode);
+            
+            case 0x48: StackPush(Cpu, Cpu.RegisterA);
+            
+            case 0x08: StackPush(Cpu, transmute(u8)Cpu.Status);
+            
+            case 0x68: Pla(Cpu);
+            
+            case 0xEA: {}
             case 0x00: return;
             
         }
@@ -461,6 +470,26 @@ Lsr :: proc (Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
     return Data;
+}
+
+Ora :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    SetRegisterA(Cpu, Cpu.RegisterA | Data);
+}
+
+Pla :: proc(Cpu : ^cpu)
+{
+    Data := StackPop(Cpu);
+    SetRegisterA(Cpu, Data);
+}
+
+Plp :: proc(Cpu : ^cpu)
+{
+    Cpu.Status = transmute(bit_set[flags; u8])StackPop(Cpu);
+    Cpu.Status -= {.BREAK};
+    Cpu.Status += {.BREAK2};
 }
 
 StackPop :: proc (Cpu : ^cpu) -> u8

@@ -191,6 +191,23 @@ Run :: proc (Cpu : ^cpu)
             
             case 0x68: Pla(Cpu);
             
+            case 0x2A: RolAccumulator(Cpu);
+            case 0x26, 0x36, 0x2E, 0x3E: Rol(Cpu, Opcode.AddressingMode);
+            
+            case 0x6A: RorAccumulator(Cpu);
+            case 0x66, 0x76, 0x6E, 0x7E: Ror(Cpu, Opcode.AddressingMode);
+            
+            case 0x40: 
+            {
+                Cpu.Status = transmute(bit_set[flags; u8])StackPop(Cpu);
+                Cpu.Status -= {.BREAK};
+                Cpu.Status += {.BREAK2};
+                
+                Cpu.ProgramCounter = StackPopu16(Cpu);
+            }
+            
+            case 0x60: Cpu.ProgramCounter = StackPopu16(Cpu) + 1;
+            
             case 0xEA: {}
             case 0x00: return;
             
@@ -490,6 +507,98 @@ Plp :: proc(Cpu : ^cpu)
     Cpu.Status = transmute(bit_set[flags; u8])StackPop(Cpu);
     Cpu.Status -= {.BREAK};
     Cpu.Status += {.BREAK2};
+}
+
+RolAccumulator :: proc(Cpu : ^cpu)
+{
+    Data := Cpu.RegisterA;
+    OldCarry := cpu_flags.CARRY in Cpu.Status;
+    
+    if Data >> 7 == 1
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data << 1; 
+    if OldCarry
+    {
+        Data = Data | 1; 
+    }
+    
+    SetRegisterA(Cpu, Data);
+}
+
+Rol :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    OldCarry := cpu_flags.CARRY in Cpu.Status;
+    
+    if Data >> 7 == 1
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data << 1; 
+    if OldCarry
+    {
+        Data = Data | 1; 
+    }
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+    return Data;
+}
+
+RorAccumulator :: proc(Cpu : ^cpu)
+{
+    Data := Cpu.RegisterA;
+    OldCarry := cpu_flags.CARRY in Cpu.Status;
+    
+    if Data & 7 == 1
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data >> 1; 
+    if OldCarry
+    {
+        Data = Data | 1; 
+    }
+    
+    SetRegisterA(Cpu, Data);
+}
+
+Ror :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    OldCarry := cpu_flags.CARRY in Cpu.Status;
+    
+    if Data & 7 == 1
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data >> 1; 
+    if OldCarry
+    {
+        Data = Data | 1; 
+    }
+    MemWrite(Cpu, Addr, Data);
+    UpdateZeroAndNegativeFlags(Cpu, Data);
+    return Data;
 }
 
 StackPop :: proc (Cpu : ^cpu) -> u8

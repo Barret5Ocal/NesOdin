@@ -208,6 +208,26 @@ Run :: proc (Cpu : ^cpu)
             
             case 0x60: Cpu.ProgramCounter = StackPopu16(Cpu) + 1;
             
+            case 0xE9, 0xE5, 0xF5, 0xED, 0xFD, 0xF9, 0xE1, 0xF1: Sbc(Cpu, Opcode.AddressingMode);
+            
+            case 0x38: SetCarryFlag(Cpu);
+            
+            case 0xF8: Cpu.Status += {.DECIMAL_MODE};
+            
+            case 0x78: Cpu.Status += {.INTERRUPUT_DISABLE};
+            
+            case 0x86, 0x96, 0x8E: 
+            {
+                Addr := GetOperandAddress(Cpu, Opcode.AddressingMode);
+                MemWrite(Cpu, Addr, Cpu.RegisterX);
+            }
+            
+            case 0x84, 0x94, 0x8C: 
+            {
+                Addr := GetOperandAddress(Cpu, Opcode.AddressingMode);
+                MemWrite(Cpu, Addr, Cpu.RegisterY);
+            }
+            
             case 0xEA: {}
             case 0x00: return;
             
@@ -599,6 +619,13 @@ Ror :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
     return Data;
+}
+
+Sbc :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
+{
+    Addr := GetOperandAddress(Cpu, AddressingMode);
+    Data := MemRead(Cpu, Addr);
+    AddToRegisterA(Cpu, cast(u8)((-(cast(i8)Data)) - 1));
 }
 
 StackPop :: proc (Cpu : ^cpu) -> u8

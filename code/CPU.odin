@@ -106,6 +106,8 @@ Run :: proc (Cpu : ^cpu)
             
             case 0xAA: Tax(Cpu);
             
+            case 0xA8: Tay(Cpu);
+            
             case 0xE8: Inx(Cpu);
             
             case 0xC8: Iny(Cpu);
@@ -228,6 +230,30 @@ Run :: proc (Cpu : ^cpu)
                 MemWrite(Cpu, Addr, Cpu.RegisterY);
             }
             
+            case 0xBA: 
+            {
+                Cpu.RegisterX = Cpu.StackPointer; 
+                UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterX);
+            }
+            
+            case 0x8A:
+            {
+                Cpu.RegisterA = Cpu.RegisterX;
+                UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterA);
+            }
+            
+            case 0x9A:
+            {
+                Cpu.StackPointer = Cpu.RegisterX;
+            }
+            
+            case 0x98:
+            {
+                Cpu.RegisterA = Cpu.RegisterY;
+                UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterA);
+            }
+            
+            
             case 0xEA: {}
             case 0x00: return;
             
@@ -237,7 +263,6 @@ Run :: proc (Cpu : ^cpu)
         {
             Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
         }
-        
     }
 }
 
@@ -430,6 +455,12 @@ Tax :: proc(Cpu : ^cpu)
 {
     Cpu.RegisterX = Cpu.RegisterA;
     UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterX);
+}
+
+Tay :: proc(Cpu : ^cpu)
+{
+    Cpu.RegisterY = Cpu.RegisterA;
+    UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterY);
 }
 
 Inx :: proc(Cpu : ^cpu)

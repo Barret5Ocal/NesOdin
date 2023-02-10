@@ -2,6 +2,8 @@ package NES
 
 import "vendor:sdl2"
 
+import "core:math/rand"
+
 main :: proc()
 {
     Flags : sdl2.InitFlags = {.VIDEO, .JOYSTICK, .GAMECONTROLLER, .EVENTS}; 
@@ -11,6 +13,10 @@ main :: proc()
     
     Surface := sdl2.GetWindowSurface(Window);
     // TODO(Barret5Ocal): Figure out what the alts to event_pumps are
+    
+    
+    Renderer := sdl2.CreateRenderer(Window, -1, {.ACCELERATED});
+    Texture := sdl2.CreateTexture(Renderer, sdl2.PIXELTYPE_PACKED8, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
     
     Game : [dynamic]u8 = {0x20, 0x06, 0x06, 0x20, 0x38, 0x06, 0x20, 0x0d, 0x06, 0x20, 0x2a, 0x06, 0x60, 0xa9, 0x02,
         0x85, 0x02, 0xa9, 0x04, 0x85, 0x03, 0xa9, 0x11, 0x85, 0x10, 0xa9, 0x10, 0x85, 0x12, 0xa9,
@@ -34,15 +40,66 @@ main :: proc()
         0x91, 0x00, 0x60, 0xa6, 0x03, 0xa9, 0x00, 0x81, 0x10, 0xa2, 0x00, 0xa9, 0x01, 0x81, 0x10,
         0x60, 0xa6, 0xff, 0xea, 0xea, 0xca, 0xd0, 0xfb, 0x60,};
     
+    Cpu : cpu; 
+    Load(&Cpu, Game);
+    Reset(&Cpu);
+    
+    ScreenState : [32 * 3 * 32]u8;
+    
+    RunWithCallback(&Cpu, proc(Cpu : ^cpu)
+                    {
+                        HandleInput(Cpu);
+                        MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
+                        
+                        
+                    });
     
     sdl2.UpdateWindowSurface(Window);
     
     sdl2.Delay(5000);
 }
 
-
-
-
+HandleInput :: proc (Cpu : ^cpu)
+{
+    Event : sdl2.Event;
+    for sdl2.PollEvent(&Event) > 0
+    {
+#partial switch Event.type
+        {
+            case sdl2.EventType.QUIT:
+            {
+                sdl2.Quit();
+            }
+            
+            case sdl2.EventType.KEYDOWN:
+            {
+                Keycode := Event.key.keysym.sym; 
+                if Keycode == sdl2.Keycode.ESCAPE
+                {
+                    sdl2.Quit();
+                }
+                else if Keycode == sdl2.Keycode.w
+                {
+                    MemWrite(Cpu, 0xff, 0x77);
+                }
+                else if Keycode == sdl2.Keycode.s
+                {
+                    MemWrite(Cpu, 0xff, 0x73);
+                }
+                else if Keycode == sdl2.Keycode.a
+                {
+                    MemWrite(Cpu, 0xff, 0x61);
+                }
+                else if Keycode == sdl2.Keycode.d
+                {
+                    MemWrite(Cpu, 0xff, 0x64);
+                }
+                
+            }
+        }
+    }
+    
+}
 
 test :: proc()
 {

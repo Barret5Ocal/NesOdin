@@ -84,6 +84,11 @@ LoadAndRun :: proc(Cpu : ^cpu, Program : [dynamic]u8)
 
 Run :: proc (Cpu : ^cpu)
 {
+    RunWithCallback(Cpu, {});
+}
+
+RunWithCallback :: proc (Cpu : ^cpu, Callback : proc(Cpu : ^cpu))
+{
     OpcodeMap := CreateOpCodeMap();
     defer delete(OpcodeMap);
     
@@ -263,6 +268,8 @@ Run :: proc (Cpu : ^cpu)
         {
             Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
         }
+        
+        Callback(Cpu);
     }
 }
 

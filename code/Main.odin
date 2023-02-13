@@ -16,7 +16,7 @@ main :: proc()
     
     
     Renderer := sdl2.CreateRenderer(Window, -1, {.ACCELERATED});
-    Texture := sdl2.CreateTexture(Renderer, sdl2.PIXELTYPE_PACKED8, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
+    Texture := sdl2.CreateTexture(Renderer, sdl2.PIXELTYPE_PACKED32, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
     
     Game : [dynamic]u8 = {0x20, 0x06, 0x06, 0x20, 0x38, 0x06, 0x20, 0x0d, 0x06, 0x20, 0x2a, 0x06, 0x60, 0xa9, 0x02,
         0x85, 0x02, 0xa9, 0x04, 0x85, 0x03, 0xa9, 0x11, 0x85, 0x10, 0xa9, 0x10, 0x85, 0x12, 0xa9,
@@ -44,14 +44,15 @@ main :: proc()
     Load(&Cpu, Game);
     Reset(&Cpu);
     
-    ScreenState : [32 * 3 * 32]u8;
-    
     RunWithCallback(&Cpu, proc(Cpu : ^cpu)
                     {
+                        // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
+                        ScreenState : [32 * 3 * 32]u8;
+                        
                         HandleInput(Cpu);
                         MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
                         
-                        
+                        ReadScreenState(Cpu, ScreenState);
                     });
     
     sdl2.UpdateWindowSurface(Window);
@@ -59,10 +60,47 @@ main :: proc()
     sdl2.Delay(5000);
 }
 
+ReadScreenState :: proc (Cpu : ^cpu, Frame : [32 * 3 * 32]u8) -> bool 
+{
+    FrameIndex := 0; 
+    Update := false;
+    for i in 0x0200..=0x600
+    {
+        ColorIndex := MemRead(Cpu, cast(u16)i);
+        Color : sdl2.Color;
+        switch ColorIndex
+        {
+            case 0: Color = {0, 0, 0, 255};
+            case 1: Color = {255, 255, 255, 255};
+            case 2, 9: Color = {255 / 2, 255 / 2, 255 / 2, 255};
+            case 3, 10: Color = {255, 0, 0, 255};
+            case 4, 11: Color = {0, 255, 0, 255};
+            case 5, 12: Color = {0, 0, 255, 255};
+            case 6, 13: Color = {255, 0, 255, 255};
+            case 7, 14: Color = {255, 255, 0, 255};
+            case: Color = {0, 255, 255, 255};
+        }
+        
+        B1, B2, B3 := Color.r, Color.g, Color.b;
+        if Frame[FrameIndex] != B1 || Frame[FrameIndex + 1] != B2 || Frame[FrameIndex + 2] != B3
+        {
+            // TODO(Barret5Ocal): Why can't i assign to these values
+            //Frame[FrameIndex] = B1;
+            //Frame[FrameIndex + 1] = B2;
+            //Frame[FrameIndex + 2] = B3;
+            Update = true;
+        }
+        FrameIndex += 3; 
+    }
+    
+    return Update;
+}
+
+
 HandleInput :: proc (Cpu : ^cpu)
 {
     Event : sdl2.Event;
-    for sdl2.PollEvent(&Event) > 0
+    for sdl2.PollEvent(&Event) == true
     {
 #partial switch Event.type
         {

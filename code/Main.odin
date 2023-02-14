@@ -47,12 +47,16 @@ main :: proc()
     RunWithCallback(&Cpu, proc(Cpu : ^cpu)
                     {
                         // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
-                        ScreenState : [32 * 3 * 32]u8;
+                        ScreenState : [32 * 3 * 32]u8 = {};
                         
                         HandleInput(Cpu);
                         MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
                         
-                        ReadScreenState(Cpu, ScreenState);
+                        if ReadScreenState(Cpu, &ScreenState)
+                        {
+                            // TODO(Barret5Ocal): how to pass in sdl stuff
+                            //sdl2.UpdateTexture(&Texture, nil, &ScreenState, 32 * 3);
+                        }
                     });
     
     sdl2.UpdateWindowSurface(Window);
@@ -60,7 +64,7 @@ main :: proc()
     sdl2.Delay(5000);
 }
 
-ReadScreenState :: proc (Cpu : ^cpu, Frame : [32 * 3 * 32]u8) -> bool 
+ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool 
 {
     FrameIndex := 0; 
     Update := false;
@@ -85,9 +89,9 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : [32 * 3 * 32]u8) -> bool
         if Frame[FrameIndex] != B1 || Frame[FrameIndex + 1] != B2 || Frame[FrameIndex + 2] != B3
         {
             // TODO(Barret5Ocal): Why can't i assign to these values
-            //Frame[FrameIndex] = B1;
-            //Frame[FrameIndex + 1] = B2;
-            //Frame[FrameIndex + 2] = B3;
+            Frame[FrameIndex] = B1;
+            Frame[FrameIndex + 1] = B2;
+            Frame[FrameIndex + 2] = B3;
             Update = true;
         }
         FrameIndex += 3; 

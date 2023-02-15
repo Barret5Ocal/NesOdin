@@ -4,19 +4,27 @@ import "vendor:sdl2"
 
 import "core:math/rand"
 
+import "core:time"
+
+sdl_package :: struct
+{
+    Window : ^sdl2.Window,
+    Renderer : ^sdl2.Renderer,
+    Texture : ^sdl2.Texture,
+}
+
 main :: proc()
 {
+    SdlPackage : sdl_package; 
+    
     Flags : sdl2.InitFlags = {.VIDEO, .JOYSTICK, .GAMECONTROLLER, .EVENTS}; 
     SdlContext := sdl2.Init(Flags);
     
-    Window := sdl2.CreateWindow("Snake Game",  sdl2.WINDOWPOS_CENTERED, sdl2.WINDOWPOS_CENTERED, (32.0 * 10.0), (32.0 * 10.0), {.SHOWN});
-    
-    Surface := sdl2.GetWindowSurface(Window);
-    // TODO(Barret5Ocal): Figure out what the alts to event_pumps are
+    SdlPackage.Window = sdl2.CreateWindow("Snake Game",  sdl2.WINDOWPOS_CENTERED, sdl2.WINDOWPOS_CENTERED, (32.0 * 10.0), (32.0 * 10.0), {.SHOWN});
     
     
-    Renderer := sdl2.CreateRenderer(Window, -1, {.ACCELERATED});
-    Texture := sdl2.CreateTexture(Renderer, sdl2.PIXELTYPE_PACKED32, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
+    SdlPackage.Renderer = sdl2.CreateRenderer(SdlPackage.Window, -1, {.ACCELERATED});
+    SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, sdl2.PIXELTYPE_PACKED32, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
     
     Game : [dynamic]u8 = {0x20, 0x06, 0x06, 0x20, 0x38, 0x06, 0x20, 0x0d, 0x06, 0x20, 0x2a, 0x06, 0x60, 0xa9, 0x02,
         0x85, 0x02, 0xa9, 0x04, 0x85, 0x03, 0xa9, 0x11, 0x85, 0x10, 0xa9, 0x10, 0x85, 0x12, 0xa9,
@@ -44,7 +52,7 @@ main :: proc()
     Load(&Cpu, Game);
     Reset(&Cpu);
     
-    RunWithCallback(&Cpu, proc(Cpu : ^cpu)
+    RunWithCallback(&Cpu, &SdlPackage, proc(Cpu : ^cpu, Sdl : ^sdl_package)
                     {
                         // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
                         ScreenState : [32 * 3 * 32]u8 = {};
@@ -55,20 +63,27 @@ main :: proc()
                         if ReadScreenState(Cpu, &ScreenState)
                         {
                             // TODO(Barret5Ocal): how to pass in sdl stuff
-                            //sdl2.UpdateTexture(&Texture, nil, &ScreenState, 32 * 3);
+                            sdl2.UpdateTexture(Sdl.Texture, nil, &ScreenState, 32 * 3);
+                            sdl2.RenderClear(Sdl.Renderer);
+                            
+                            sdl2.RenderCopy(Sdl.Renderer, Sdl.Texture, nil, nil);
+                            
+                            sdl2.RenderPresent(Sdl.Renderer);
                         }
+                        
+                        time.sleep(70000);
                     });
     
-    sdl2.UpdateWindowSurface(Window);
+    //sdl2.UpdateWindowSurface(SdlPackage.Window);
     
-    sdl2.Delay(5000);
+    
 }
 
 ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool 
 {
     FrameIndex := 0; 
     Update := false;
-    for i in 0x0200..=0x600
+    for i in 0x0200..<0x600
     {
         ColorIndex := MemRead(Cpu, cast(u16)i);
         Color : sdl2.Color;
@@ -104,7 +119,7 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool
 HandleInput :: proc (Cpu : ^cpu)
 {
     Event : sdl2.Event;
-    for sdl2.PollEvent(&Event) == true
+    for sdl2.PollEvent(&Event) > 0
     {
 #partial switch Event.type
         {

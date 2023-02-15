@@ -61,8 +61,10 @@ Reset :: proc(Cpu : ^cpu)
 {
     Cpu.RegisterA = 0;
     Cpu.RegisterX = 0;
-    //Cpu.RegisterY = 0;
-    Cpu.Status = nil;
+    Cpu.RegisterY = 0;
+    
+    StatusReset : u8 = 0b100100;
+    Cpu.Status = transmute(cpu_flags)StatusReset;
     
     Cpu.ProgramCounter = MemReadu16(Cpu, 0xFFFC);
     Cpu.StackPointer = STACK_RESET;
@@ -70,9 +72,9 @@ Reset :: proc(Cpu : ^cpu)
 
 Load :: proc(Cpu : ^cpu, Program : [dynamic]u8)
 {
-    copy(Cpu.Memory[0x8000:], Program[:]);
-    MemWriteu16(Cpu, 0xFFFC, 0x8000);
-    //Cpu.ProgramCounter = 0x8000;
+    copy(Cpu.Memory[0x0600:], Program[:]);
+    MemWriteu16(Cpu, 0xFFFC, 0x0600);
+    
 }
 
 LoadAndRun :: proc(Cpu : ^cpu, Program : [dynamic]u8)
@@ -84,10 +86,10 @@ LoadAndRun :: proc(Cpu : ^cpu, Program : [dynamic]u8)
 
 Run :: proc (Cpu : ^cpu)
 {
-    RunWithCallback(Cpu, {});
+    RunWithCallback(Cpu, nil, {});
 }
 
-RunWithCallback :: proc (Cpu : ^cpu, Callback : proc(Cpu : ^cpu))
+RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : proc(Cpu : ^cpu, Sdl : ^sdl_package))
 {
     OpcodeMap := CreateOpCodeMap();
     defer delete(OpcodeMap);
@@ -269,7 +271,7 @@ RunWithCallback :: proc (Cpu : ^cpu, Callback : proc(Cpu : ^cpu))
             Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
         }
         
-        Callback(Cpu);
+        Callback(Cpu, Sdl);
     }
 }
 

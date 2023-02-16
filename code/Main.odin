@@ -119,7 +119,8 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool
 HandleInput :: proc (Cpu : ^cpu)
 {
     Event : sdl2.Event;
-    for sdl2.PollEvent(&Event) > 0
+    // NOTE(Barret5Ocal): PollEvent returns a different type depending whether im on pc or my laptop. maybe different versions of odin?
+    for sdl2.PollEvent(&Event) == true
     {
 #partial switch Event.type
         {

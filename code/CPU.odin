@@ -37,6 +37,7 @@ MemReadu16 :: proc(Cpu : ^cpu, Pos : u16) -> u16
     Lo := cast(u16)MemRead(Cpu, Pos);
     Hi := cast(u16)MemRead(Cpu, Pos + 1);
     return (Lo << 8) | (cast(u16)Hi); // NOTE(Barret5Ocal): Be careful about this. It's different than the tutorial because it made the program work
+    
 }
 
 MemWriteu16 :: proc(Cpu : ^cpu, Pos : u16, Data : u16)

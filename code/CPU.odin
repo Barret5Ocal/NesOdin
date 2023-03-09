@@ -32,6 +32,8 @@ flags :: enum{CARRY, ZERO, INTERRUPUT_DISABLE, DECIMAL_MODE, BREAK, BREAK2, OVER
 
 cpu_flags :: bit_set[flags; u8];
 
+import "core:fmt"
+
 MemReadu16 :: proc(Cpu : ^cpu, Pos : u16) -> u16
 {
     Lo := cast(u16)MemRead(Cpu, Pos);
@@ -56,6 +58,76 @@ MemRead :: proc(Cpu : ^cpu, Address : u16) -> u8
 MemWrite :: proc(Cpu : ^cpu, Address : u16, Value : u8)
 {
     Cpu.Memory[Address] = Value;
+}
+
+GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
+{
+    switch Mode
+    {
+        case addressing_mode.IMMEDIATE: 
+        {
+            return Cpu.ProgramCounter;
+        }
+        case addressing_mode.ZEROPAGE: 
+        {
+            return cast(u16)MemRead(Cpu, Cpu.ProgramCounter);
+        }
+        case addressing_mode.ABSOLUTE:
+        {
+            return MemReadu16(Cpu, Cpu.ProgramCounter);
+        }
+        case addressing_mode.ZEROPAGE_X:
+        {
+            Pos := MemRead(Cpu, Cpu.ProgramCounter);
+            Addr := cast(u16)(Pos + Cpu.RegisterX); // NOTE(Barret5Ocal): Ints auto wrap in Odin
+            return Addr;
+        }
+        case addressing_mode.ZEROPAGE_Y:
+        {
+            Pos := MemRead(Cpu, Cpu.ProgramCounter);
+            Addr := cast(u16)(Pos + Cpu.RegisterY);
+            return Addr;
+        }
+        case addressing_mode.ABSOLUTE_X:
+        {
+            Base := MemReadu16(Cpu, Cpu.ProgramCounter);
+            Addr := Base + cast(u16)Cpu.RegisterX;
+            return Addr;
+        }
+        case addressing_mode.ABSOLUTE_Y:
+        {
+            Base := MemReadu16(Cpu, Cpu.ProgramCounter);
+            Addr := Base + cast(u16)Cpu.RegisterY;
+            return Addr;
+        }
+        case addressing_mode.INDIRECT_X:
+        {
+            Base := MemRead(Cpu, Cpu.ProgramCounter);
+            
+            Ptr : u8 = (cast(u8) Base) + Cpu.RegisterX; 
+            Lo := MemRead(Cpu, cast(u16)Ptr);
+            Hi := MemRead(Cpu, cast(u16)Ptr + 1);
+            //(Lo << 8) | (cast(u16)Hi
+            return (cast(u16)Hi) << 8 | (cast(u16)Lo);
+        }
+        case addressing_mode.INDIRECT_Y:
+        {
+            Base := MemRead(Cpu, Cpu.ProgramCounter);
+            
+            Lo := MemRead(Cpu, cast(u16)Base);
+            Hi := MemRead(Cpu, cast(u16)((cast(u8)Base) + 1));
+            //(Lo << 8) | (cast(u16)Hi
+            DerefBase := (cast(u16)Hi) << 8 | (cast(u16)Lo);
+            Deref := DerefBase + cast(u16)Cpu.RegisterY;
+            return Deref
+        }
+        case addressing_mode.NONEADDRESSING:
+        {
+            assert(false);
+        }
+        
+    }
+    return 0;
 }
 
 Reset :: proc(Cpu : ^cpu)
@@ -87,10 +159,10 @@ LoadAndRun :: proc(Cpu : ^cpu, Program : [dynamic]u8)
 
 Run :: proc (Cpu : ^cpu)
 {
-    RunWithCallback(Cpu, nil, {});
+    RunWithCallback(Cpu, nil, false);
 }
 
-RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : proc(Cpu : ^cpu, Sdl : ^sdl_package))
+RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
 {
     OpcodeMap := CreateOpCodeMap();
     defer delete(OpcodeMap);
@@ -272,7 +344,7 @@ RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : proc(Cpu : ^
             Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
         }
         
-        Callback(Cpu, Sdl);
+        if Callback do EngineLevel(Cpu, Sdl);
     }
 }
 
@@ -717,72 +789,4 @@ UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)
     {
         Cpu.Status = Cpu.Status - {.NEGATIV};
     }
-}
-
-GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
-{
-    switch Mode
-    {
-        case addressing_mode.IMMEDIATE: 
-        {
-            return Cpu.ProgramCounter;
-        }
-        case addressing_mode.ZEROPAGE: 
-        {
-            return cast(u16)MemRead(Cpu, Cpu.ProgramCounter);
-        }
-        case addressing_mode.ABSOLUTE:
-        {
-            return MemReadu16(Cpu, Cpu.ProgramCounter);
-        }
-        case addressing_mode.ZEROPAGE_X:
-        {
-            Pos := MemRead(Cpu, Cpu.ProgramCounter);
-            Addr := cast(u16)(Pos + Cpu.RegisterX); // NOTE(Barret5Ocal): Ints auto wrap in Odin
-            return Addr;
-        }
-        case addressing_mode.ZEROPAGE_Y:
-        {
-            Pos := MemRead(Cpu, Cpu.ProgramCounter);
-            Addr := cast(u16)(Pos + Cpu.RegisterY);
-            return Addr;
-        }
-        case addressing_mode.ABSOLUTE_X:
-        {
-            Base := MemReadu16(Cpu, Cpu.ProgramCounter);
-            Addr := Base + cast(u16)Cpu.RegisterX;
-            return Addr;
-        }
-        case addressing_mode.ABSOLUTE_Y:
-        {
-            Base := MemReadu16(Cpu, Cpu.ProgramCounter);
-            Addr := Base + cast(u16)Cpu.RegisterY;
-            return Addr;
-        }
-        case addressing_mode.INDIRECT_X:
-        {
-            Base := MemRead(Cpu, Cpu.ProgramCounter);
-            
-            Ptr : u8 = (cast(u8) Base) + Cpu.RegisterX; 
-            Lo := MemRead(Cpu, cast(u16)Ptr);
-            Hi := MemRead(Cpu, cast(u16)Ptr + 1);
-            return (cast(u16)Hi) << 8 | (cast(u16)Lo);
-        }
-        case addressing_mode.INDIRECT_Y:
-        {
-            Base := MemRead(Cpu, Cpu.ProgramCounter);
-            
-            Lo := MemRead(Cpu, cast(u16)Base);
-            Hi := MemRead(Cpu, cast(u16)((cast(u8)Base) + 1));
-            DerefBase := (cast(u16)Hi) << 8 | (cast(u16)Lo);
-            Deref := DerefBase + cast(u16)Cpu.RegisterY;
-            return Deref
-        }
-        case addressing_mode.NONEADDRESSING:
-        {
-            assert(false);
-        }
-        
-    }
-    return 0;
 }

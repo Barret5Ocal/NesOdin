@@ -3,7 +3,7 @@ package NES
 import "vendor:sdl2"
 
 import "core:math/rand"
-
+import "core:fmt"
 import "core:time"
 
 sdl_package :: struct
@@ -15,6 +15,7 @@ sdl_package :: struct
 
 main :: proc()
 {
+    
     SdlPackage : sdl_package; 
     
     Flags : sdl2.InitFlags = {.VIDEO, .JOYSTICK, .GAMECONTROLLER, .EVENTS}; 
@@ -34,31 +35,32 @@ main :: proc()
     Load(&Cpu, Game);
     Reset(&Cpu);
     
-    RunWithCallback(&Cpu, &SdlPackage, proc(Cpu : ^cpu, Sdl : ^sdl_package)
-                    {
-                        // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
-                        ScreenState : [32 * 3 * 32]u8 = {};
-                        
-                        HandleInput(Cpu);
-                        MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
-                        
-                        if ReadScreenState(Cpu, &ScreenState)
-                        {
-                            // TODO(Barret5Ocal): how to pass in sdl stuff
-                            sdl2.UpdateTexture(Sdl.Texture, nil, &ScreenState, 32 * 3);
-                            sdl2.RenderClear(Sdl.Renderer);
-                            
-                            sdl2.RenderCopy(Sdl.Renderer, Sdl.Texture, nil, nil);
-                            
-                            sdl2.RenderPresent(Sdl.Renderer);
-                        }
-                        
-                        time.sleep(70000);
-                    });
-    
+    RunWithCallback(&Cpu, &SdlPackage, true);
     //sdl2.UpdateWindowSurface(SdlPackage.Window);
     
     
+}
+
+EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
+{
+    // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
+    ScreenState : [32 * 3 * 32]u8 = {};
+    
+    HandleInput(Cpu);
+    MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
+    
+    if ReadScreenState(Cpu, &ScreenState)
+    {
+        // TODO(Barret5Ocal): how to pass in sdl stuff
+        sdl2.UpdateTexture(Sdl.Texture, nil, &ScreenState, 32 * 3);
+        sdl2.RenderClear(Sdl.Renderer);
+        
+        sdl2.RenderCopy(Sdl.Renderer, Sdl.Texture, nil, nil);
+        
+        sdl2.RenderPresent(Sdl.Renderer);
+    }
+    
+    time.sleep(70000);
 }
 
 ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool 

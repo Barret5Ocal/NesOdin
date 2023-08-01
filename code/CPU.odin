@@ -38,7 +38,7 @@ MemReadu16 :: proc(Cpu : ^cpu, Pos : u16) -> u16
 {
     Lo := cast(u16)MemRead(Cpu, Pos);
     Hi := cast(u16)MemRead(Cpu, Pos + 1);
-    return (Lo << 8) | (cast(u16)Hi); // NOTE(Barret5Ocal): Be careful about this. It's different than the tutorial because it made the program work
+    return (Hi << 8) | (cast(u16)Lo); // NOTE(Barret5Ocal): Be careful about this. It's different than the tutorial because it made the program work
     
 }
 
@@ -46,8 +46,8 @@ MemWriteu16 :: proc(Cpu : ^cpu, Pos : u16, Data : u16)
 {
     Lo := cast(u8)(Data >> 8);
     Hi := cast(u8)(Data & 0xff);
-    MemWrite(Cpu, Pos, Lo);
-    MemWrite(Cpu, Pos + 1, Hi)
+    MemWrite(Cpu, Pos, Hi);
+    MemWrite(Cpu, Pos + 1, Lo)
 }
 
 MemRead :: proc(Cpu : ^cpu, Address : u16) -> u8
@@ -58,6 +58,35 @@ MemRead :: proc(Cpu : ^cpu, Address : u16) -> u8
 MemWrite :: proc(Cpu : ^cpu, Address : u16, Value : u8)
 {
     Cpu.Memory[Address] = Value;
+}
+
+StackPop :: proc (Cpu : ^cpu) -> u8
+{
+    Cpu.StackPointer += 1; 
+    return MemRead(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer);
+}
+
+StackPush :: proc (Cpu : ^cpu, Data : u8) 
+{
+    MemWrite(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer, Data);
+    Cpu.StackPointer -= 1;  
+}
+
+StackPushu16 :: proc (Cpu : ^cpu, Data : u16)
+{
+    Lo := cast(u8)(Data >> 8);
+    Hi := cast(u8)(Data & 0xff);
+    StackPush(Cpu, Hi);
+    StackPush(Cpu, Lo);
+}
+
+StackPopu16 :: proc (Cpu : ^cpu) -> u16
+{
+    Lo : u16 = cast(u16)StackPop(Cpu);
+    Hi : u16 = cast(u16)StackPop(Cpu);
+    
+    return Hi << 8 | Lo; 
+    
 }
 
 GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
@@ -135,12 +164,13 @@ Reset :: proc(Cpu : ^cpu)
     Cpu.RegisterA = 0;
     Cpu.RegisterX = 0;
     Cpu.RegisterY = 0;
+    Cpu.StackPointer = STACK_RESET;
     
     StatusReset : u8 = 0b100100;
     Cpu.Status = transmute(cpu_flags)StatusReset;
     
     Cpu.ProgramCounter = MemReadu16(Cpu, 0xFFFC);
-    Cpu.StackPointer = STACK_RESET;
+    
 }
 
 Load :: proc(Cpu : ^cpu, Program : [dynamic]u8)
@@ -739,35 +769,6 @@ Sbc :: proc(Cpu : ^cpu, AddressingMode : addressing_mode)
     Addr := GetOperandAddress(Cpu, AddressingMode);
     Data := MemRead(Cpu, Addr);
     AddToRegisterA(Cpu, cast(u8)((-(cast(i8)Data)) - 1));
-}
-
-StackPop :: proc (Cpu : ^cpu) -> u8
-{
-    Cpu.StackPointer += 1; 
-    return MemRead(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer);
-}
-
-StackPush :: proc (Cpu : ^cpu, Data : u8) 
-{
-    MemWrite(Cpu, cast(u16)STACK + cast(u16)Cpu.StackPointer, Data);
-    Cpu.StackPointer -= 1;  
-}
-
-StackPushu16 :: proc (Cpu : ^cpu, Data : u16)
-{
-    Lo := cast(u8)(Data >> 8);
-    Hi := cast(u8)(Data & 0xff);
-    StackPush(Cpu, Hi);
-    StackPush(Cpu, Lo);
-}
-
-StackPopu16 :: proc (Cpu : ^cpu) -> u16
-{
-    Lo : u16 = cast(u16)StackPop(Cpu);
-    Hi : u16 = cast(u16)StackPop(Cpu);
-    
-    return Hi << 8 | Lo; 
-    
 }
 
 UpdateZeroAndNegativeFlags :: proc(Cpu : ^cpu, Result : u8)

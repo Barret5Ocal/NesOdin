@@ -28,10 +28,10 @@ main :: proc()
     SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, sdl2.PIXELTYPE_PACKED32, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
     
     Game : [dynamic]u8 = {
-        0x20, 0x06, 0x06, // jump to subroutine init
-        0x20, 0x38, 0x06, // jump to subroutine loop
+        0x20, 0x06, 0x06, // jump to subroutine init 0x0600
+        0x20, 0x38, 0x06, // jump to subroutine loop 
         // init: 
-        0x20, 0x0d, 0x06, // jump to subroutine initSnake
+        0x20, 0x0d, 0x06, // jump to subroutine initSnake 0x0606
         0x20, 0x2a, 0x06, // jump to subroutine generateApplePosition
         0x60, // rts
         

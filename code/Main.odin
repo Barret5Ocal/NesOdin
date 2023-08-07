@@ -324,7 +324,6 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool
         B1, B2, B3 := Color.r, Color.g, Color.b;
         if Frame[FrameIndex] != B1 || Frame[FrameIndex + 1] != B2 || Frame[FrameIndex + 2] != B3
         {
-            // TODO(Barret5Ocal): Why can't i assign to these values
             Frame[FrameIndex] = B1;
             Frame[FrameIndex + 1] = B2;
             Frame[FrameIndex + 2] = B3;

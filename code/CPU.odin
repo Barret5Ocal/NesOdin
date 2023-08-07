@@ -82,11 +82,13 @@ StackPushu16 :: proc (Cpu : ^cpu, Data : u16)
 
 StackPopu16 :: proc (Cpu : ^cpu) -> u16
 {
+    
     Lo : u16 = cast(u16)StackPop(Cpu);
     Hi : u16 = cast(u16)StackPop(Cpu);
     
-    return Hi << 8 | Lo; 
-    
+    //return (Hi << 8) | (cast(u16)Lo); 
+    return (Lo << 8) | (cast(u16)Hi); 
+    // NOTE(Barret5Ocal): Be think that this fixed the problem but be careful. It still might not work
 }
 
 GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16

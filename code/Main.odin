@@ -5,6 +5,7 @@ import "vendor:sdl2"
 import "core:math/rand"
 import "core:fmt"
 import "core:time"
+import "core:mem"
 
 sdl_package :: struct
 {
@@ -12,6 +13,9 @@ sdl_package :: struct
     Renderer : ^sdl2.Renderer,
     Texture : ^sdl2.Texture,
 }
+
+WIN_WIDTH :: 32;
+WIN_HEIGHT :: 32;
 
 main :: proc()
 {
@@ -21,11 +25,16 @@ main :: proc()
     Flags : sdl2.InitFlags = {.VIDEO, .JOYSTICK, .GAMECONTROLLER, .EVENTS}; 
     SdlContext := sdl2.Init(Flags);
     
-    SdlPackage.Window = sdl2.CreateWindow("Snake Game",  sdl2.WINDOWPOS_CENTERED, sdl2.WINDOWPOS_CENTERED, (32.0 * 10.0), (32.0 * 10.0), {.SHOWN});
+    SdlPackage.Window = sdl2.CreateWindow("Snake Game",  sdl2.WINDOWPOS_CENTERED, sdl2.WINDOWPOS_CENTERED, (WIN_WIDTH * 10.0), (WIN_HEIGHT * 10.0), {.SHOWN});
     
     
-    SdlPackage.Renderer = sdl2.CreateRenderer(SdlPackage.Window, -1, {.ACCELERATED});
-    SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, sdl2.PIXELTYPE_PACKED32, sdl2.TextureAccess.STREAMING, (32.0 * 10.0), (32.0 * 10.0));
+    RenderFlags : sdl2.RendererFlags  = sdl2.RENDERER_ACCELERATED | sdl2.RENDERER_PRESENTVSYNC;
+    
+    SdlPackage.Renderer = sdl2.CreateRenderer(SdlPackage.Window, -1, RenderFlags);
+    
+    sdl2.RenderSetLogicalSize(SdlPackage.Renderer, WIN_WIDTH, WIN_HEIGHT);
+    
+    SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, cast(u32)sdl2.PixelFormatEnum.RGB24, sdl2.TextureAccess.STREAMING, WIN_WIDTH, WIN_HEIGHT);
     
     Game : [dynamic]u8 = {
         0x20, 0x06, 0x06, // jump to subroutine init 0x0600
@@ -281,7 +290,7 @@ main :: proc()
 EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
 {
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
-    ScreenState : [32 * 3 * 32]u8 = {};
+    ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
     
     HandleInput(Cpu);
     MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
@@ -289,7 +298,17 @@ EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
     if ReadScreenState(Cpu, &ScreenState)
     {
         // TODO(Barret5Ocal): how to pass in sdl stuff
-        sdl2.UpdateTexture(Sdl.Texture, nil, &ScreenState, 32 * 3);
+        TexturePitch: i32 = 0;
+        TexturePixels : rawptr = nil;
+        if (sdl2.LockTexture(Sdl.Texture, nil, &TexturePixels, &TexturePitch) != 0) {
+            sdl2.Log("Unable to lock texture: %s", sdl2.GetError());
+        }
+        else {
+            mem.copy(TexturePixels, &ScreenState, cast(int)(TexturePitch * WIN_HEIGHT));
+        }
+        sdl2.UnlockTexture(Sdl.Texture);
+        
+        //sdl2.UpdateTexture(Sdl.Texture, nil, &ScreenState, 32 * 3);
         sdl2.RenderClear(Sdl.Renderer);
         
         sdl2.RenderCopy(Sdl.Renderer, Sdl.Texture, nil, nil);
@@ -297,10 +316,11 @@ EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
         sdl2.RenderPresent(Sdl.Renderer);
     }
     
-    time.sleep(70000);
+    
+    time.sleep(cast(time.Duration)time.duration_nanoseconds(70000));
 }
 
-ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[32 * 3 * 32]u8) -> bool 
+ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[WIN_WIDTH * 3 * WIN_HEIGHT]u8) -> bool 
 {
     FrameIndex := 0; 
     Update := false;
@@ -351,26 +371,24 @@ HandleInput :: proc (Cpu : ^cpu)
             
             case sdl2.EventType.KEYDOWN:
             {
-                Keycode := Event.key.keysym.sym; 
-                if Keycode == sdl2.Keycode.ESCAPE
+#partial switch Event.key.keysym.scancode
                 {
-                    sdl2.Quit();
-                }
-                else if Keycode == sdl2.Keycode.w
-                {
-                    MemWrite(Cpu, 0xff, 0x77);
-                }
-                else if Keycode == sdl2.Keycode.s
-                {
-                    MemWrite(Cpu, 0xff, 0x73);
-                }
-                else if Keycode == sdl2.Keycode.a
-                {
-                    MemWrite(Cpu, 0xff, 0x61);
-                }
-                else if Keycode == sdl2.Keycode.d
-                {
-                    MemWrite(Cpu, 0xff, 0x64);
+                    case sdl2.Scancode.W: 
+                    fallthrough;
+                    case sdl2.Scancode.UP: 
+                    MemWrite(Cpu, 0xff, 0x77); 
+                    case sdl2.Scancode.A: 
+                    fallthrough;
+                    case sdl2.Scancode.LEFT: 
+                    MemWrite(Cpu, 0xff, 0x61); 
+                    case sdl2.Scancode.S: 
+                    fallthrough;
+                    case sdl2.Scancode.DOWN: 
+                    MemWrite(Cpu, 0xff, 0x73); 
+                    case sdl2.Scancode.D: 
+                    fallthrough;
+                    case sdl2.Scancode.RIGHT: 
+                    MemWrite(Cpu, 0xff, 0x64); 
                 }
                 
             }

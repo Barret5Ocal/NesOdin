@@ -254,7 +254,7 @@ main :: proc()
         0x91, 0x00, // dereference to the address stored at address $00 and $01 (the address of the apple on the screen) and set the value to the value of register A and add the value of Y (0) to it. This results in the apple getting a random color
         0x60, // rts 
         
-        // NOTE(Barret5Ocal): this is different from the snake source. check for errors
+        // NOTE(Barret5Ocal): this is different from the snake source. check for errors. 
         // drawSnake:
         0xa6, 0x03, // ;set the value of the x register to the value stored in memory at location $03 (the length of the snake) 
         0xa9, 0x00, // set the value of the A register to 0
@@ -267,12 +267,16 @@ main :: proc()
         // spinWheels:
         0xa6, 0xff,
         
+        //// TODO(Barret5Ocal): The game plays at a normal rate when I remove the spinloop. Figure out why.
         // spinloop:
         0xea, // no operation, just skip a cycle
         0xea, // no operation, just skip a cycle
         0xca, // subtract one from the value stored in register x
         0xd0, 0xfb, // if the zero flag is clear, loop. The first dex above wrapped the value of x to hex $ff, so the next zero value is 255 (hex $ff) loops later.
         0x60, // rts
+        
+        
+        
     };
     
     // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.

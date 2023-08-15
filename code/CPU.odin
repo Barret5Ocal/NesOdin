@@ -91,6 +91,7 @@ StackPopu16 :: proc (Cpu : ^cpu) -> u16
     // NOTE(Barret5Ocal): Be think that this fixed the problem but be careful. It still might not work
 }
 
+// TODO(Barret5Ocal): I have been having trouble with my reads and writes so I need to look into this to see if I am grabbing the values correctly
 GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
 {
     switch Mode

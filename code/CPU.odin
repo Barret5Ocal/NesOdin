@@ -132,6 +132,7 @@ GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
             Addr := Base + cast(u16)Cpu.RegisterY;
             return Addr;
         }
+        // TODO(Barret5Ocal): The addressing for the indirect modes might be the cause of the current problem but changing them causes a game break. 
         case addressing_mode.INDIRECT_X:
         {
             Base := MemRead(Cpu, Cpu.ProgramCounter);
@@ -139,8 +140,9 @@ GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
             Ptr : u8 = (cast(u8) Base) + Cpu.RegisterX; 
             Lo := MemRead(Cpu, cast(u16)Ptr);
             Hi := MemRead(Cpu, cast(u16)Ptr + 1);
-            //(Lo << 8) | (cast(u16)Hi
-            return (cast(u16)Hi) << 8 | (cast(u16)Lo);
+            Result :=  (cast(u16)Hi) << 8 | (cast(u16)Lo);
+            //Result :=  (cast(u16)Lo) << 8 | (cast(u16)Hi);
+            return Result;
         }
         case addressing_mode.INDIRECT_Y:
         {
@@ -148,8 +150,8 @@ GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
             
             Lo := MemRead(Cpu, cast(u16)Base);
             Hi := MemRead(Cpu, cast(u16)((cast(u8)Base) + 1));
-            //(Lo << 8) | (cast(u16)Hi
             DerefBase := (cast(u16)Hi) << 8 | (cast(u16)Lo);
+            //DerefBase := (cast(u16)Lo) << 8 | (cast(u16)Hi);
             Deref := DerefBase + cast(u16)Cpu.RegisterY;
             return Deref
         }

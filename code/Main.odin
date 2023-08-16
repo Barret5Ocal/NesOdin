@@ -17,8 +17,11 @@ sdl_package :: struct
 WIN_WIDTH :: 32;
 WIN_HEIGHT :: 32;
 
+DEBUG_ON :: true; 
+
 main :: proc()
 {
+    //test_addressing_accuracy();
     
     SdlPackage : sdl_package; 
     
@@ -35,6 +38,8 @@ main :: proc()
     sdl2.RenderSetLogicalSize(SdlPackage.Renderer, WIN_WIDTH, WIN_HEIGHT);
     
     SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, cast(u32)sdl2.PixelFormatEnum.RGB24, sdl2.TextureAccess.STREAMING, WIN_WIDTH, WIN_HEIGHT);
+    
+    if DEBUG_ON do CreateUIWindow();
     
     Game : [dynamic]u8 = {
         0x20, 0x06, 0x06, // jump to subroutine init 0x0600
@@ -304,6 +309,7 @@ main :: proc()
 
 EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
 {
+    if DEBUG_ON do UpdateUI();
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
     ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
     
@@ -331,6 +337,7 @@ EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
         sdl2.RenderPresent(Sdl.Renderer);
     }
     
+    if DEBUG_ON do RenderUI();
     
     time.sleep(cast(time.Duration)time.duration_nanoseconds(70000));
 }
@@ -460,4 +467,21 @@ test5 :: proc()
     MemWrite(&Cpu, 0x10, 0x55);
     LoadAndRun(&Cpu, {0xa5, 0x10, 0x00});
     assert(Cpu.RegisterA == 0x55);
+}
+
+test_addressing_accuracy :: proc()
+{
+    Cpu : cpu;
+    
+    MemWrite(&Cpu, 0x10, 0x01);
+    MemWrite(&Cpu, 0x11, 0x10);
+    MemWrite(&Cpu, 0x12, 0x20);
+    MemWriteu16(&Cpu, 0x1010, 0x01);
+    MemWriteu16(&Cpu, 0x1020, 0x01);
+    
+    
+    //MemWriteu16(&Cpu, 0x12, 0x01);
+    LoadAndRun(&Cpu, {0xa9, 0x01, 0xa5, 0x10, 0xb5, 0x10, 0xad, 0x10, 0x10, 0xbd, 0x10, 0x10, 0xb9, 0x10, 0x10, 0xa1, 0x11, 0xb1, 0x11});
+    
+    // check 0xad
 }

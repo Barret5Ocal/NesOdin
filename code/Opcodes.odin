@@ -1,5 +1,7 @@
 package NES 
 
+OpcodeMap : map[u8]opcode; 
+
 opcode :: struct 
 {
     Code : u8,
@@ -166,7 +168,7 @@ Opcodes : []opcode =
 
 CreateOpCodeMap :: proc() -> map[u8]opcode
 {
-    OpcodeMap := make(map[u8]opcode);
+    OpcodeMap = make(map[u8]opcode);
     
     for op in Opcodes
     {

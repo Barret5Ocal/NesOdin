@@ -4,6 +4,9 @@ import mu"vendor:microui"
 import "vendor:sdl2"
 import "core:fmt"
 
+UI_WIDTH :: 540;
+UI_HEIGHT :: 700;
+
 state := struct {
 	mu_ctx: mu.Context,
 	log_buf:         [1<<16]byte,
@@ -20,13 +23,13 @@ UIRender : ^sdl2.Renderer;
 
 CreateUIWindow :: proc()
 {
-    UiWindow:= sdl2.CreateWindow("UI Window",  50, sdl2.WINDOWPOS_CENTERED, 540, 700, {.SHOWN, .RESIZABLE});
+    UiWindow:= sdl2.CreateWindow("UI Window",  50, sdl2.WINDOWPOS_CENTERED, UI_WIDTH, UI_HEIGHT, {.SHOWN});
     if UiWindow == nil 
     {
 		fmt.eprintln(sdl2.GetError());
         return;
 	}
-    
+    ///*
     backend_idx: i32 = -1;
     if n := sdl2.GetNumRenderDrivers(); n <= 0 
     {
@@ -48,14 +51,16 @@ CreateUIWindow :: proc()
 			}
 		}
 	}
-    
-    renderer : ^sdl2.Renderer = sdl2.CreateRenderer(UiWindow, backend_idx, {.ACCELERATED, .PRESENTVSYNC});
+    //*/
+    renderer : ^sdl2.Renderer = sdl2.CreateRenderer(UiWindow, -1, {.ACCELERATED, .PRESENTVSYNC});
     if renderer == nil 
     {
 		fmt.eprintln("SDL.CreateRenderer:", sdl2.GetError());
         return;
 	}
     UIRender = renderer;
+    
+    //sdl2.RenderSetLogicalSize(renderer, WIN_WIDTH, WIN_HEIGHT);
     
     state.atlas_texture = sdl2.CreateTexture(renderer, u32(sdl2.PixelFormatEnum.RGBA32), .TARGET, mu.DEFAULT_ATLAS_WIDTH, mu.DEFAULT_ATLAS_HEIGHT);
     assert(state.atlas_texture != nil);
@@ -111,22 +116,57 @@ UpdateUI :: proc()
 {
     ctx := &state.mu_ctx;
     
+    for e: sdl2.Event; sdl2.PollEvent(&e) != false; /**/ 
+    {
+#partial switch e.type
+        {
+            case .MOUSEMOTION:
+            mu.input_mouse_move(ctx, e.motion.x, e.motion.y);
+            case .MOUSEWHEEL:
+            mu.input_scroll(ctx, e.wheel.x * 30, e.wheel.y * -30);
+            
+            case .MOUSEBUTTONDOWN, .MOUSEBUTTONUP:
+            {
+                fn := mu.input_mouse_down if e.type == .MOUSEBUTTONDOWN else mu.input_mouse_up;
+                switch e.button.button
+                {
+                    case sdl2.BUTTON_LEFT:   fn(ctx, e.button.x, e.button.y, .LEFT);
+                    case sdl2.BUTTON_MIDDLE: fn(ctx, e.button.x, e.button.y, .MIDDLE);
+                    case sdl2.BUTTON_RIGHT:  fn(ctx, e.button.x, e.button.y, .RIGHT);
+                }
+            }
+        }
+    }
+    
     @static opts := mu.Options{.NO_CLOSE};
 	mu.begin(ctx);
     
-	if mu.window(ctx, "Demo Window", {40, 40, 300, 450}, opts)
+	if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
     {
-		if .ACTIVE in mu.header(ctx, "Window Info") 
+        
+        for i := 0; i < len(Game); i += 1 //for g in Game 
         {
-			win := mu.get_current_container(ctx);
+            g := Game[i];
+            Opcode := OpcodeMap[g];
             mu.layout_row(ctx, {54, -1}, 0);
-            mu.label(ctx, "Position:");
-            mu.label(ctx, fmt.tprintf("%d, %d", win.rect.x, win.rect.y));
-            mu.label(ctx, "Size:");
-            mu.label(ctx, fmt.tprintf("%d, %d", win.rect.w, win.rect.h));
-		}
-		
-		
+            mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+            
+            Arg1 : u8;
+            Arg2 : u8;
+            if Opcode.Len == 2 
+            {
+                Arg1 = Game[i + 1];
+                mu.label(ctx, fmt.tprintf("0x%X", Arg1));
+            }
+            else if Opcode.Len == 3 
+            {
+                Arg1 = Game[i + 1]; 
+                Arg2 = Game[i + 2];
+                mu.label(ctx, fmt.tprintf("0x%X 0x%X", Arg1, Arg2));
+            }
+            
+            i += cast(int)(Opcode.Len - 1); 
+        }
     }
     
     mu.end(ctx);
@@ -135,6 +175,7 @@ UpdateUI :: proc()
 
 RenderUI :: proc()
 {
+    
     ctx := &state.mu_ctx;
     renderer: ^sdl2.Renderer = UIRender;
     
@@ -169,18 +210,29 @@ RenderUI :: proc()
                 render_texture(renderer, &dst, src, cmd.color);
                 dst.x += dst.w;
 			}
+            
             case ^mu.Command_Rect:
-			sdl2.SetRenderDrawColor(renderer, cmd.color.r, cmd.color.g, cmd.color.b, cmd.color.a);
-            sdl2.RenderFillRect(renderer, &sdl2.Rect{cmd.rect.x, cmd.rect.y, cmd.rect.w, cmd.rect.h});
+            {
+                sdl2.SetRenderDrawColor(renderer, cmd.color.r, cmd.color.g, cmd.color.b, cmd.color.a);
+                sdl2.RenderFillRect(renderer, &sdl2.Rect{cmd.rect.x, cmd.rect.y, cmd.rect.w, cmd.rect.h});
+            }
+            
             case ^mu.Command_Icon:
-			src := mu.default_atlas[cmd.id];
-            x := cmd.rect.x + (cmd.rect.w - src.w)/2;
-            y := cmd.rect.y + (cmd.rect.h - src.h)/2;
-            render_texture(renderer, &sdl2.Rect{x, y, 0, 0}, src, cmd.color);
+            {
+                src := mu.default_atlas[cmd.id];
+                x := cmd.rect.x + (cmd.rect.w - src.w)/2;
+                y := cmd.rect.y + (cmd.rect.h - src.h)/2;
+                render_texture(renderer, &sdl2.Rect{x, y, 0, 0}, src, cmd.color);
+            }
+            
             case ^mu.Command_Clip:
-			sdl2.RenderSetClipRect(renderer, &sdl2.Rect{cmd.rect.x, cmd.rect.y, cmd.rect.w, cmd.rect.h});
+			{
+                sdl2.RenderSetClipRect(renderer, &sdl2.Rect{cmd.rect.x, cmd.rect.y, cmd.rect.w, cmd.rect.h});
+            }
+            
             case ^mu.Command_Jump: 
-			unreachable();
+            {unreachable();}
+            
 		}
 	}
 	

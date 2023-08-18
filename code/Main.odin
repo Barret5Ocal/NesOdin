@@ -19,6 +19,8 @@ WIN_HEIGHT :: 32;
 
 DEBUG_ON :: true; 
 
+Game : [dynamic]u8; 
+
 main :: proc()
 {
     //test_addressing_accuracy();
@@ -41,7 +43,7 @@ main :: proc()
     
     if DEBUG_ON do CreateUIWindow();
     
-    Game : [dynamic]u8 = {
+    Game = {
         0x20, 0x06, 0x06, // jump to subroutine init 0x0600
         0x20, 0x38, 0x06, // jump to subroutine loop 
         // init: 
@@ -309,9 +311,10 @@ main :: proc()
 
 EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
 {
-    if DEBUG_ON do UpdateUI();
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
     ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
+    
+    if DEBUG_ON do UpdateUI();
     
     HandleInput(Cpu);
     MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
@@ -381,7 +384,7 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[WIN_WIDTH * 3 * WIN_HEIGHT]u8) ->
 HandleInput :: proc (Cpu : ^cpu)
 {
     Event : sdl2.Event;
-    // NOTE(Barret5Ocal): PollEvent returns a different type depending whether im on pc or my laptop. maybe different versions of odin?
+    
     for sdl2.PollEvent(&Event) == true
     {
 #partial switch Event.type
@@ -483,5 +486,4 @@ test_addressing_accuracy :: proc()
     //MemWriteu16(&Cpu, 0x12, 0x01);
     LoadAndRun(&Cpu, {0xa9, 0x01, 0xa5, 0x10, 0xb5, 0x10, 0xad, 0x10, 0x10, 0xbd, 0x10, 0x10, 0xb9, 0x10, 0x10, 0xa1, 0x11, 0xb1, 0x11});
     
-    // check 0xad
 }

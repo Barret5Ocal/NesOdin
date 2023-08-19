@@ -7,7 +7,25 @@ import "core:fmt"
 UI_WIDTH :: 540;
 UI_HEIGHT :: 700;
 
-state := struct {
+debug_data := struct 
+{
+    ProgramStart : u16,
+    ProgramCounter : u16,
+}{}
+
+debug_code_data_entry :: struct 
+{
+    Code : u8,
+    Len : u8,
+    Arg1 : u8,
+    Arg2 : u8,
+    RealPosition : u16,
+}
+
+DebugCodeData : [dynamic]debug_code_data_entry;
+
+state := struct
+{
 	mu_ctx: mu.Context,
 	log_buf:         [1<<16]byte,
 	log_buf_len:     int,
@@ -23,6 +41,7 @@ UIRender : ^sdl2.Renderer;
 
 CreateUIWindow :: proc()
 {
+    
     UiWindow:= sdl2.CreateWindow("UI Window",  50, sdl2.WINDOWPOS_CENTERED, UI_WIDTH, UI_HEIGHT, {.SHOWN});
     if UiWindow == nil 
     {
@@ -92,24 +111,31 @@ CreateUIWindow :: proc()
     
 }
 
-u8_slider :: proc(ctx: ^mu.Context, val: ^u8, lo, hi: u8) -> (res: mu.Result_Set) 
+UISetup :: proc()
 {
-	mu.push_id(ctx, uintptr(val));
     
-    @static tmp: mu.Real;
-    tmp = mu.Real(val^);
-    res = mu.slider(ctx, &tmp, mu.Real(lo), mu.Real(hi), 0, "%.0f", {.ALIGN_CENTER});
-    val^ = u8(tmp);
-    mu.pop_id(ctx);
-    return;
-}
-
-
-write_log :: proc(str: string)
-{
-	state.log_buf_len += copy(state.log_buf[state.log_buf_len:], str);
-    state.log_buf_len += copy(state.log_buf[state.log_buf_len:], "\n");
-    state.log_buf_updated = true;
+    for i := 0; i < len(Game); i += 1 //for g in Game 
+    {
+        g := Game[i];
+        Opcode := OpcodeMap[g];
+        
+        Arg1 : u8;
+        Arg2 : u8;
+        if Opcode.Len == 2 
+        {
+            Arg1 = Game[i + 1];
+        }
+        else if Opcode.Len == 3 
+        {
+            Arg1 = Game[i + 1]; 
+            Arg2 = Game[i + 2];
+        }
+        
+        i += cast(int)(Opcode.Len - 1); 
+        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i});
+        
+    }
+    
 }
 
 UpdateUI :: proc()
@@ -143,30 +169,26 @@ UpdateUI :: proc()
     
 	if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
     {
-        
-        for i := 0; i < len(Game); i += 1 //for g in Game 
+        for e in DebugCodeData
         {
-            g := Game[i];
-            Opcode := OpcodeMap[g];
             mu.layout_row(ctx, {54, -1}, 0);
+            Opcode := OpcodeMap[e.Code];
             mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
-            
-            Arg1 : u8;
-            Arg2 : u8;
-            if Opcode.Len == 2 
+            if e.Len == 2 
             {
-                Arg1 = Game[i + 1];
-                mu.label(ctx, fmt.tprintf("0x%X", Arg1));
+                mu.label(ctx, fmt.tprintf("0x%X", e.Arg1));
             }
-            else if Opcode.Len == 3 
+            else if e.Len == 3 
             {
-                Arg1 = Game[i + 1]; 
-                Arg2 = Game[i + 2];
-                mu.label(ctx, fmt.tprintf("0x%X 0x%X", Arg1, Arg2));
+                mu.label(ctx, fmt.tprintf("0x%X 0x%X", e.Arg1, e.Arg2));
             }
             
-            i += cast(int)(Opcode.Len - 1); 
+            if e.RealPosition == debug_data.ProgramCounter
+            {
+                mu.label(ctx, "Current");
+            }
         }
+        
     }
     
     mu.end(ctx);

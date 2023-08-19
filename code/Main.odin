@@ -293,10 +293,13 @@ main :: proc()
         0xd0, 0xfb, // if the zero flag is clear, loop. The first dex above wrapped the value of x to hex $ff, so the next zero value is 255 (hex $ff) loops later.
         0x60, // rts
         
-        
-        
     };
     
+    OpcodeMap := CreateOpCodeMap();
+    defer delete(OpcodeMap);
+    
+    
+    UISetup();
     // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.
     
     Cpu : cpu; 

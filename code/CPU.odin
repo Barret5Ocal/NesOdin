@@ -176,6 +176,8 @@ Reset :: proc(Cpu : ^cpu)
     
     Cpu.ProgramCounter = MemReadu16(Cpu, 0xFFFC);
     
+    // NOTE(Barret5Ocal): DEBUG
+    debug_data.ProgramStart = Cpu.ProgramCounter;
 }
 
 Load :: proc(Cpu : ^cpu, Program : [dynamic]u8)
@@ -199,8 +201,6 @@ Run :: proc (Cpu : ^cpu)
 
 RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
 {
-    OpcodeMap := CreateOpCodeMap();
-    defer delete(OpcodeMap);
     
     for 
     {
@@ -378,6 +378,9 @@ RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
         {
             Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
         }
+        
+        // NOTE(Barret5Ocal): DEBUG
+        debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
         
         if Callback do EngineLevel(Cpu, Sdl);
     }

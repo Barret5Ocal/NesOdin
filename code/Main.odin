@@ -299,7 +299,7 @@ main :: proc()
     defer delete(OpcodeMap);
     
     
-    UISetup();
+    if DEBUG_ON do UISetup();
     // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.
     
     Cpu : cpu; 

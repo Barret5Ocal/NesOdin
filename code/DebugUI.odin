@@ -11,6 +11,8 @@ debug_data := struct
 {
     ProgramStart : u16,
     ProgramCounter : u16,
+    BreakPoint : b32,
+    StepOnce : b32,
 }{}
 
 debug_code_data_entry :: struct 
@@ -108,7 +110,6 @@ CreateUIWindow :: proc()
     ctx.text_width = mu.default_atlas_text_width;
     ctx.text_height = mu.default_atlas_text_height;
     
-    
 }
 
 UISetup :: proc()
@@ -136,6 +137,7 @@ UISetup :: proc()
         
     }
     
+    debug_data.BreakPoint = true; 
 }
 
 UpdateUI :: proc()
@@ -167,8 +169,11 @@ UpdateUI :: proc()
     @static opts := mu.Options{.NO_CLOSE};
 	mu.begin(ctx);
     
+    CurrentStepData : debug_code_data_entry; 
+    
 	if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
     {
+        
         for e in DebugCodeData
         {
             mu.layout_row(ctx, {54, -1}, 0);
@@ -186,6 +191,32 @@ UpdateUI :: proc()
             if e.RealPosition == debug_data.ProgramCounter
             {
                 mu.label(ctx, "Current");
+                CurrentStepData = e;
+            }
+        }
+        
+    }
+    
+    if mu.window(ctx, "Current Position", {350, 40, 100, 50}, opts)
+    {
+        Opcode := OpcodeMap[CurrentStepData.Code];
+        mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+    }
+    
+    if mu.window(ctx, "BreakPoints", {40, 500, 200, 150}, opts) 
+    {
+        if .SUBMIT in mu.button(ctx, "Break Code")
+        {
+            debug_data.BreakPoint = !debug_data.BreakPoint;
+            //fmt.printf("Pressed button\n");
+        }
+        
+        if .SUBMIT in mu.button(ctx, "Step")
+        {
+            if debug_data.BreakPoint == false
+            {
+                debug_data.StepOnce = true;
+                debug_data.BreakPoint = true; 
             }
         }
         

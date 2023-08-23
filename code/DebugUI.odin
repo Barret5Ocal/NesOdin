@@ -22,6 +22,7 @@ debug_code_data_entry :: struct
     Arg1 : u8,
     Arg2 : u8,
     RealPosition : u16,
+    LineNumber : int,
 }
 
 DebugCodeData : [dynamic]debug_code_data_entry;
@@ -114,7 +115,7 @@ CreateUIWindow :: proc()
 
 UISetup :: proc()
 {
-    
+    r : int =0;
     for i := 0; i < len(Game); i += 1 //for g in Game 
     {
         g := Game[i];
@@ -133,12 +134,16 @@ UISetup :: proc()
         }
         
         i += cast(int)(Opcode.Len - 1); 
-        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i});
+        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r});
+        
+        r += 1; 
         
     }
     
     debug_data.BreakPoint = true; 
 }
+
+CurrentStepData : debug_code_data_entry;
 
 UpdateUI :: proc()
 {
@@ -169,14 +174,13 @@ UpdateUI :: proc()
     @static opts := mu.Options{.NO_CLOSE};
 	mu.begin(ctx);
     
-    CurrentStepData : debug_code_data_entry; 
-    
-	if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
+    if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
     {
-        
+        i : int = 0;
         for e in DebugCodeData
         {
-            mu.layout_row(ctx, {54, -1}, 0);
+            mu.layout_row(ctx, {54, 100, 100, -1}, 0);
+            mu.label(ctx, fmt.tprintf("%i", i));
             Opcode := OpcodeMap[e.Code];
             mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
             if e.Len == 2 
@@ -193,14 +197,22 @@ UpdateUI :: proc()
                 mu.label(ctx, "Current");
                 CurrentStepData = e;
             }
+            
+            i += 1; 
         }
         
     }
     
-    if mu.window(ctx, "Current Position", {350, 40, 100, 50}, opts)
+    if mu.window(ctx, "Current Position", {350, 40, 100, 100}, opts)
     {
+        //if CurrentStepData.Len > 0 
+        //{
+        mu.layout_row(ctx, {54, -1}, 0);
         Opcode := OpcodeMap[CurrentStepData.Code];
+        mu.label(ctx, fmt.tprintf("%i", CurrentStepData.LineNumber));
         mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+        
+        //}
     }
     
     if mu.window(ctx, "BreakPoints", {40, 500, 200, 150}, opts) 

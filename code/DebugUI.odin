@@ -7,12 +7,18 @@ import "core:fmt"
 UI_WIDTH :: 540;
 UI_HEIGHT :: 700;
 
+debug_state :: enum
+{
+    NORMAL,
+    BREAKPOINT,
+    STEPONCE,
+}
+
 debug_data := struct 
 {
     ProgramStart : u16,
     ProgramCounter : u16,
-    BreakPoint : b32,
-    StepOnce : b32,
+    State : debug_state,
 }{}
 
 debug_code_data_entry :: struct 
@@ -140,7 +146,7 @@ UISetup :: proc()
         
     }
     
-    debug_data.BreakPoint = true; 
+    debug_data.State = debug_state.BREAKPOINT; 
 }
 
 CurrentStepData : debug_code_data_entry;
@@ -219,16 +225,16 @@ UpdateUI :: proc()
     {
         if .SUBMIT in mu.button(ctx, "Break Code")
         {
-            debug_data.BreakPoint = !debug_data.BreakPoint;
-            //fmt.printf("Pressed button\n");
+            if debug_data.State == debug_state.NORMAL do debug_data.State = debug_state.BREAKPOINT;
+            else if debug_data.State == debug_state.BREAKPOINT do debug_data.State = debug_state.NORMAL;
+            
         }
         
         if .SUBMIT in mu.button(ctx, "Step")
         {
-            if debug_data.BreakPoint == false
+            if debug_data.State  == debug_state.BREAKPOINT
             {
-                debug_data.StepOnce = true;
-                debug_data.BreakPoint = true; 
+                debug_data.State = debug_state.STEPONCE;
             }
         }
         

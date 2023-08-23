@@ -302,13 +302,39 @@ main :: proc()
     if DEBUG_ON do UISetup();
     // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.
     
-    Cpu : cpu; 
-    Load(&Cpu, Game);
-    Reset(&Cpu);
-    
-    RunWithCallback(&Cpu, &SdlPackage, true);
-    //sdl2.UpdateWindowSurface(SdlPackage.Window);
-    
+    if DEBUG_ON 
+    {
+        debug_data.State = debug_state.NORMAL;
+        Cpu : cpu; 
+        Load(&Cpu, Game);
+        Reset(&Cpu);
+        
+        for
+        {
+            if debug_data.State == debug_state.NORMAL
+            {
+                RunOpcode(&Cpu);
+            }
+            else if debug_data.State == debug_state.STEPONCE
+            {
+                RunOpcode(&Cpu);
+                debug_data.State = debug_state.BREAKPOINT;
+            }
+            debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
+            
+            EngineLevel(&Cpu, &SdlPackage);
+        }
+        
+    }
+    else 
+    {
+        Cpu : cpu; 
+        Load(&Cpu, Game);
+        Reset(&Cpu);
+        
+        RunWithCallback(&Cpu, &SdlPackage, true);
+        //sdl2.UpdateWindowSurface(SdlPackage.Window);
+    }
     
 }
 

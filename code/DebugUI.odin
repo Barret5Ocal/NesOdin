@@ -31,7 +31,8 @@ debug_code_data_entry :: struct
     LineNumber : int,
 }
 
-DebugCodeData : [dynamic]debug_code_data_entry;
+// TODO(Barret5Ocal): Need to find a way to get the size of this array
+DebugCodeData : [164]debug_code_data_entry;
 
 state := struct
 {
@@ -139,8 +140,10 @@ UISetup :: proc()
             Arg2 = Game[i + 2];
         }
         
+        //append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r});
+        DebugCodeData[r] = {Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r};
+        
         i += cast(int)(Opcode.Len - 1); 
-        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r});
         
         r += 1; 
         
@@ -149,7 +152,7 @@ UISetup :: proc()
     debug_data.State = debug_state.BREAKPOINT; 
 }
 
-CurrentStepData : debug_code_data_entry;
+CurrentStepData : ^debug_code_data_entry;
 
 UpdateUI :: proc()
 {
@@ -182,8 +185,8 @@ UpdateUI :: proc()
     
     if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
     {
-        i : int = 0;
-        for e in DebugCodeData
+        
+        for e, i in DebugCodeData
         {
             mu.layout_row(ctx, {54, 100, 100, -1}, 0);
             mu.label(ctx, fmt.tprintf("%i", i));
@@ -198,13 +201,15 @@ UpdateUI :: proc()
                 mu.label(ctx, fmt.tprintf("0x%X 0x%X", e.Arg1, e.Arg2));
             }
             
+            // TODO(Barret5Ocal): the problem with this is that i need to be able to convert the realposition into the linenumber. although this should still work. need to check of the realposition is being recorded correctly 
             if e.RealPosition == debug_data.ProgramCounter
             {
                 mu.label(ctx, "Current");
-                CurrentStepData = e;
+                //CurrentStepData = e;
+                CurrentStepData = &DebugCodeData[i];
             }
             
-            i += 1; 
+            //i += 1; 
         }
         
     }
@@ -214,10 +219,16 @@ UpdateUI :: proc()
         //if CurrentStepData.Len > 0 
         //{
         mu.layout_row(ctx, {54, -1}, 0);
-        Opcode := OpcodeMap[CurrentStepData.Code];
-        mu.label(ctx, fmt.tprintf("%i", CurrentStepData.LineNumber));
-        mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
-        
+        if CurrentStepData != nil
+        {
+            Opcode := OpcodeMap[CurrentStepData.Code];
+            mu.label(ctx, fmt.tprintf("%i", CurrentStepData.LineNumber));
+            mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+            
+            mu.layout_row(ctx, {54}, 0);
+            mu.label(ctx, fmt.tprintf("%i", debug_data.ProgramCounter));
+            //mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+        }
         //}
     }
     

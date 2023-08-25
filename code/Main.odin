@@ -304,7 +304,7 @@ main :: proc()
     
     if DEBUG_ON 
     {
-        debug_data.State = debug_state.NORMAL;
+        debug_data.State = debug_state.BREAKPOINT;
         Cpu : cpu; 
         Load(&Cpu, Game);
         Reset(&Cpu);

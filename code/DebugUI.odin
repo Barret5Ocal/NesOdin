@@ -154,7 +154,7 @@ UISetup :: proc()
 
 CurrentStepData : ^debug_code_data_entry;
 
-UpdateUI :: proc()
+UpdateUI :: proc(Cpu : ^cpu)
 {
     ctx := &state.mu_ctx;
     
@@ -183,7 +183,7 @@ UpdateUI :: proc()
     @static opts := mu.Options{.NO_CLOSE};
 	mu.begin(ctx);
     
-    if mu.window(ctx, "Game Code", {40, 40, 300, 450}, opts)
+    if mu.window(ctx, "Game Code", {40, 40, 360, 450}, opts)
     {
         
         for e, i in DebugCodeData
@@ -214,7 +214,7 @@ UpdateUI :: proc()
         
     }
     
-    if mu.window(ctx, "Current Position", {350, 40, 100, 100}, opts)
+    if mu.window(ctx, "Current Position", {405, 40, 100, 100}, opts)
     {
         //if CurrentStepData.Len > 0 
         //{
@@ -248,6 +248,23 @@ UpdateUI :: proc()
                 debug_data.State = debug_state.STEPONCE;
             }
         }
+        
+    }
+    
+    if mu.window(ctx, "Cpu", {300, 500, 200, 150}, opts)
+    {
+        mu.layout_row(ctx, {64, -1}, 0);
+        mu.label(ctx, fmt.tprintf("Register A"));
+        mu.label(ctx, fmt.tprintf("%i", Cpu.RegisterA));
+        
+        mu.layout_row(ctx, {64, -1}, 0);
+        mu.label(ctx, fmt.tprintf("Register X"));
+        mu.label(ctx, fmt.tprintf("%i", Cpu.RegisterX));
+        
+        mu.layout_row(ctx, {64, -1}, 0);
+        mu.label(ctx, fmt.tprintf("Register Y"));
+        mu.label(ctx, fmt.tprintf("%i", Cpu.RegisterY));
+        
         
     }
     

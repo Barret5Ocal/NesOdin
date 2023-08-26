@@ -343,7 +343,7 @@ EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
     ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
     
-    if DEBUG_ON do UpdateUI();
+    if DEBUG_ON do UpdateUI(Cpu);
     
     HandleInput(Cpu);
     MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));

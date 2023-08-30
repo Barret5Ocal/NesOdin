@@ -201,7 +201,6 @@ UpdateUI :: proc(Cpu : ^cpu)
                 mu.label(ctx, fmt.tprintf("0x%X 0x%X", e.Arg1, e.Arg2));
             }
             
-            // TODO(Barret5Ocal): the problem with this is that i need to be able to convert the realposition into the linenumber. although this should still work. need to check of the realposition is being recorded correctly 
             if e.RealPosition == debug_data.ProgramCounter
             {
                 mu.label(ctx, "Current");
@@ -209,7 +208,6 @@ UpdateUI :: proc(Cpu : ^cpu)
                 CurrentStepData = &DebugCodeData[i];
             }
             
-            //i += 1; 
         }
         
     }
@@ -265,7 +263,9 @@ UpdateUI :: proc(Cpu : ^cpu)
         mu.label(ctx, fmt.tprintf("Register Y"));
         mu.label(ctx, fmt.tprintf("%i", Cpu.RegisterY));
         
-        
+        Inputs := MemRead(Cpu, 0xff);
+        mu.layout_row(ctx, {100}, 0);
+        mu.label(ctx, fmt.tprintf("Inputs: 0x%X", Inputs));
     }
     
     mu.end(ctx);

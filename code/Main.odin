@@ -23,7 +23,6 @@ Game : [dynamic]u8;
 
 main :: proc()
 {
-    //test_addressing_accuracy();
     
     SdlPackage : sdl_package; 
     
@@ -43,6 +42,7 @@ main :: proc()
     
     if DEBUG_ON do CreateUIWindow();
     
+    // TODO(Barret5Ocal): There are two things that i want to look into. I need to make sure the inputs are being registered correctly and i need to make sure the apples are spawning correctly
     Game = {
         0x20, 0x06, 0x06, // jump to subroutine init 0x0600
         0x20, 0x38, 0x06, // jump to subroutine loop 
@@ -409,7 +409,7 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[WIN_WIDTH * 3 * WIN_HEIGHT]u8) ->
     return Update;
 }
 
-
+// NOTE(Barret5Ocal): spinWheels might get in the way of collecting inputs
 HandleInput :: proc (Cpu : ^cpu)
 {
     Event : sdl2.Event;

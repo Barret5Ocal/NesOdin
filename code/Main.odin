@@ -23,6 +23,7 @@ Game : [dynamic]u8;
 
 main :: proc()
 {
+    fmt.eprintln("ProgramStart");
     
     SdlPackage : sdl_package; 
     
@@ -304,7 +305,7 @@ main :: proc()
     
     if DEBUG_ON 
     {
-        debug_data.State = debug_state.BREAKPOINT;
+        debug_data.State = debug_state.NORMAL;
         Cpu : cpu; 
         Load(&Cpu, Game);
         Reset(&Cpu);
@@ -430,21 +431,32 @@ HandleInput :: proc (Cpu : ^cpu)
                     case sdl2.Scancode.W: 
                     fallthrough;
                     case sdl2.Scancode.UP: 
-                    MemWrite(Cpu, 0xff, 0x77); 
+                    {
+                        MemWrite(Cpu, 0xff, 0x77); 
+                        fmt.eprintln("UP");
+                    }
                     case sdl2.Scancode.A: 
                     fallthrough;
                     case sdl2.Scancode.LEFT: 
-                    MemWrite(Cpu, 0xff, 0x61); 
+                    {
+                        MemWrite(Cpu, 0xff, 0x61); 
+                        fmt.eprintln("LEFT");
+                    }
                     case sdl2.Scancode.S: 
                     fallthrough;
-                    case sdl2.Scancode.DOWN: 
-                    MemWrite(Cpu, 0xff, 0x73); 
+                    case sdl2.Scancode.DOWN:
+                    {
+                        MemWrite(Cpu, 0xff, 0x73);
+                        fmt.eprintln("DOWN");
+                    }
                     case sdl2.Scancode.D: 
                     fallthrough;
                     case sdl2.Scancode.RIGHT: 
-                    MemWrite(Cpu, 0xff, 0x64); 
+                    {
+                        MemWrite(Cpu, 0xff, 0x64); 
+                        fmt.eprintln("RIGHT");
+                    }
                 }
-                
             }
         }
     }

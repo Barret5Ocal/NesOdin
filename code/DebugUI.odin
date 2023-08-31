@@ -158,7 +158,7 @@ UpdateUI :: proc(Cpu : ^cpu)
 {
     ctx := &state.mu_ctx;
     
-    for e: sdl2.Event; sdl2.PollEvent(&e) != false; /**/ 
+    for e: sdl2.Event; sdl2.PollEvent(&e) != false; 
     {
 #partial switch e.type
         {
@@ -177,11 +177,14 @@ UpdateUI :: proc(Cpu : ^cpu)
                     case sdl2.BUTTON_RIGHT:  fn(ctx, e.button.x, e.button.y, .RIGHT);
                 }
             }
+            
+            
         }
+        
     }
     
     @static opts := mu.Options{.NO_CLOSE};
-	mu.begin(ctx);
+    mu.begin(ctx);
     
     if mu.window(ctx, "Game Code", {40, 40, 360, 450}, opts)
     {
@@ -280,16 +283,16 @@ RenderUI :: proc()
     
     render_texture :: proc(renderer: ^sdl2.Renderer, dst: ^sdl2.Rect, src: mu.Rect, color: mu.Color) 
     {
-		dst.w = src.w;
+        dst.w = src.w;
         dst.h = src.h;
         
         sdl2.SetTextureAlphaMod(state.atlas_texture, color.a);
         sdl2.SetTextureColorMod(state.atlas_texture, color.r, color.g, color.b);
         sdl2.RenderCopy(renderer, state.atlas_texture, &sdl2.Rect{src.x, src.y, src.w, src.h}, dst);
-	}
-	
+    }
+    
     viewport_rect := &sdl2.Rect{};
-	sdl2.GetRendererOutputSize(renderer, &viewport_rect.w, &viewport_rect.h);
+    sdl2.GetRendererOutputSize(renderer, &viewport_rect.w, &viewport_rect.h);
     sdl2.RenderSetViewport(renderer, viewport_rect);
     sdl2.RenderSetClipRect(renderer, viewport_rect);
     sdl2.SetRenderDrawColor(renderer, state.bg.r, state.bg.g, state.bg.b, state.bg.a);
@@ -298,17 +301,17 @@ RenderUI :: proc()
     command_backing: ^mu.Command;
     for variant in mu.next_command_iterator(ctx, &command_backing) 
     {
-		switch cmd in variant 
+        switch cmd in variant 
         {
             case ^mu.Command_Text:
-			dst := sdl2.Rect{cmd.pos.x, cmd.pos.y, 0, 0};
-			for ch in cmd.str do if ch&0xc0 != 0x80
+            dst := sdl2.Rect{cmd.pos.x, cmd.pos.y, 0, 0};
+            for ch in cmd.str do if ch&0xc0 != 0x80
             {
-				r := min(int(ch), 127);
+                r := min(int(ch), 127);
                 src := mu.default_atlas[mu.DEFAULT_ATLAS_FONT + r];
                 render_texture(renderer, &dst, src, cmd.color);
                 dst.x += dst.w;
-			}
+            }
             
             case ^mu.Command_Rect:
             {
@@ -325,15 +328,15 @@ RenderUI :: proc()
             }
             
             case ^mu.Command_Clip:
-			{
+            {
                 sdl2.RenderSetClipRect(renderer, &sdl2.Rect{cmd.rect.x, cmd.rect.y, cmd.rect.w, cmd.rect.h});
             }
             
             case ^mu.Command_Jump: 
             {unreachable();}
             
-		}
-	}
-	
-	sdl2.RenderPresent(renderer);
+        }
+    }
+    
+    sdl2.RenderPresent(renderer);
 }

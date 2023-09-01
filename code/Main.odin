@@ -339,12 +339,17 @@ main :: proc()
     
 }
 
+Inputs : inputs; 
+
 EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
 {
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
     ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
     
-    if DEBUG_ON do UpdateUI(Cpu);
+    GetInputs(&Inputs);
+    
+    
+    if DEBUG_ON do UpdateUI(Cpu, &Inputs);
     
     HandleInput(Cpu);
     MemWrite(Cpu, 0xfe, cast(u8)rand.float32_range(1, 16));
@@ -413,53 +418,28 @@ ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[WIN_WIDTH * 3 * WIN_HEIGHT]u8) ->
 // NOTE(Barret5Ocal): spinWheels might get in the way of collecting inputs
 HandleInput :: proc (Cpu : ^cpu)
 {
-    Event : sdl2.Event;
     
-    for sdl2.PollEvent(&Event) == true
+    if Inputs.W.Down || Inputs.Up.Down
     {
-#partial switch Event.type
-        {
-            case sdl2.EventType.QUIT:
-            {
-                sdl2.Quit();
-            }
-            
-            case sdl2.EventType.KEYDOWN:
-            {
-#partial switch Event.key.keysym.scancode
-                {
-                    case sdl2.Scancode.W: 
-                    fallthrough;
-                    case sdl2.Scancode.UP: 
-                    {
-                        MemWrite(Cpu, 0xff, 0x77); 
-                        fmt.eprintln("UP");
-                    }
-                    case sdl2.Scancode.A: 
-                    fallthrough;
-                    case sdl2.Scancode.LEFT: 
-                    {
-                        MemWrite(Cpu, 0xff, 0x61); 
-                        fmt.eprintln("LEFT");
-                    }
-                    case sdl2.Scancode.S: 
-                    fallthrough;
-                    case sdl2.Scancode.DOWN:
-                    {
-                        MemWrite(Cpu, 0xff, 0x73);
-                        fmt.eprintln("DOWN");
-                    }
-                    case sdl2.Scancode.D: 
-                    fallthrough;
-                    case sdl2.Scancode.RIGHT: 
-                    {
-                        MemWrite(Cpu, 0xff, 0x64); 
-                        fmt.eprintln("RIGHT");
-                    }
-                }
-            }
-        }
+        MemWrite(Cpu, 0xff, 0x77); 
+        fmt.eprintln("UP");
     }
+    if Inputs.A.Down || Inputs.Left.Down 
+    {
+        MemWrite(Cpu, 0xff, 0x61); 
+        fmt.eprintln("LEFT");
+    }
+    if Inputs.S.Down || Inputs.Down.Down
+    {
+        MemWrite(Cpu, 0xff, 0x73);
+        fmt.eprintln("DOWN");
+    }
+    if Inputs.D.Down || Inputs.Right.Down 
+    {
+        MemWrite(Cpu, 0xff, 0x64); 
+        fmt.eprintln("RIGHT");
+    }
+    
     
 }
 

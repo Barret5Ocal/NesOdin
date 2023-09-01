@@ -2,6 +2,12 @@ package NES
 
 import "vendor:sdl2"
 
+v2 :: struct #raw_union
+{
+    using _: struct {x, y: i32 },
+    a : [2]i32,
+}
+
 digital_button :: struct 
 {
     Down : bool,
@@ -21,7 +27,8 @@ inputs :: struct
     MouseLeft : digital_button,
     MouseMiddle : digital_button,
     MouseRight : digital_button,
-    
+    MouseMotion : v2,
+    MouseWheel : v2,
 }
 
 GetInputs :: proc(Inputs : ^inputs)
@@ -78,39 +85,37 @@ GetInputs :: proc(Inputs : ^inputs)
             }
             
             // TODO(Barret5Ocal): figure out how to put this in inputs
-            //case .MOUSEMOTION:
-            //mu.input_mouse_move(ctx, e.motion.x, e.motion.y);
-            //case .MOUSEWHEEL:
-            //mu.input_scroll(ctx, e.wheel.x * 30, e.wheel.y * -30);
+            case .MOUSEMOTION:
+            Inputs.MouseMotion.a = [2]i32{Event.motion.x, Event.motion.y};
+            case .MOUSEWHEEL:
+            Inputs.MouseWheel.a = [2]i32{Event.wheel.x, Event.wheel.y};
             
-#partial switch Event.type
+            case .MOUSEBUTTONDOWN:
             {
-                case .MOUSEBUTTONDOWN:
+                switch Event.button.button
                 {
-                    switch Event.button.button
-                    {
-                        case sdl2.BUTTON_LEFT:  
-                        Inputs.MouseLeft.Down = true;
-                        case sdl2.BUTTON_MIDDLE: 
-                        Inputs.MouseMiddle.Down = true;
-                        case sdl2.BUTTON_RIGHT:  
-                        Inputs.MouseRight.Down = true;
-                    }
+                    case sdl2.BUTTON_LEFT:  
+                    Inputs.MouseLeft.Down = true;
+                    case sdl2.BUTTON_MIDDLE: 
+                    Inputs.MouseMiddle.Down = true;
+                    case sdl2.BUTTON_RIGHT:  
+                    Inputs.MouseRight.Down = true;
                 }
-                case .MOUSEBUTTONUP:
-                {
-                    switch Event.button.button
-                    {
-                        case sdl2.BUTTON_LEFT:  
-                        Inputs.MouseLeft.Up = true;
-                        case sdl2.BUTTON_MIDDLE: 
-                        Inputs.MouseMiddle.Up = true;
-                        case sdl2.BUTTON_RIGHT:  
-                        Inputs.MouseRight.Up = true;
-                    }
-                }
-                
             }
+            case .MOUSEBUTTONUP:
+            {
+                switch Event.button.button
+                {
+                    case sdl2.BUTTON_LEFT:  
+                    Inputs.MouseLeft.Up = true;
+                    case sdl2.BUTTON_MIDDLE: 
+                    Inputs.MouseMiddle.Up = true;
+                    case sdl2.BUTTON_RIGHT:  
+                    Inputs.MouseRight.Up = true;
+                }
+            }
+            
+            
         }
     }
     

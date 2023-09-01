@@ -154,34 +154,20 @@ UISetup :: proc()
 
 CurrentStepData : ^debug_code_data_entry;
 
-UpdateUI :: proc(Cpu : ^cpu)
+UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
 {
     ctx := &state.mu_ctx;
     
-    for e: sdl2.Event; sdl2.PollEvent(&e) != false; 
-    {
-#partial switch e.type
-        {
-            case .MOUSEMOTION:
-            mu.input_mouse_move(ctx, e.motion.x, e.motion.y);
-            case .MOUSEWHEEL:
-            mu.input_scroll(ctx, e.wheel.x * 30, e.wheel.y * -30);
-            
-            case .MOUSEBUTTONDOWN, .MOUSEBUTTONUP:
-            {
-                fn := mu.input_mouse_down if e.type == .MOUSEBUTTONDOWN else mu.input_mouse_up;
-                switch e.button.button
-                {
-                    case sdl2.BUTTON_LEFT:   fn(ctx, e.button.x, e.button.y, .LEFT);
-                    case sdl2.BUTTON_MIDDLE: fn(ctx, e.button.x, e.button.y, .MIDDLE);
-                    case sdl2.BUTTON_RIGHT:  fn(ctx, e.button.x, e.button.y, .RIGHT);
-                }
-            }
-            
-            
-        }
-        
-    }
+    mu.input_mouse_move(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.x);
+    
+    mu.input_scroll(ctx, Inputs.MouseWheel.x * 30, Inputs.MouseWheel.y * -30);
+    
+    if Inputs.MouseLeft.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    if Inputs.MouseLeft.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    if Inputs.MouseMiddle.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
+    if Inputs.MouseMiddle.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
+    if Inputs.MouseRight.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    if Inputs.MouseRight.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .RIGHT);
     
     @static opts := mu.Options{.NO_CLOSE};
     mu.begin(ctx);

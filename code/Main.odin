@@ -45,91 +45,90 @@ main :: proc()
     
     // TODO(Barret5Ocal): There are two things that i want to look into. I need to make sure the inputs are being registered correctly and i need to make sure the apples are spawning correctly
     Game = {
-        0x20, 0x06, 0x06, // jump to subroutine init 0x0600
-        0x20, 0x38, 0x06, // jump to subroutine loop 
+        0x20, 0x06, 0x06, // 0: jump to subroutine init 0x0600
+        0x20, 0x38, 0x06, // 1: jump to subroutine loop 
         // init: 
-        0x20, 0x0d, 0x06, // jump to subroutine initSnake 0x0606
-        0x20, 0x2a, 0x06, // jump to subroutine generateApplePosition
-        0x60, // rts
+        0x20, 0x0d, 0x06, // 2: jump to subroutine initSnake 0x0606
+        0x20, 0x2a, 0x06, // 3: jump to subroutine generateApplePosition
+        0x60, // 4: rts
         
         // initSnake: 
-        0xa9, 0x02, // start direction, put the dec number 2 in register A
-        0x85, 0x02, // store value of register A at address $02
+        0xa9, 0x02, // 5: start direction, put the dec number 2 in register A
+        0x85, 0x02, // 6: store value of register A at address $02
         
-        0xa9, 0x04, // start length, put the dec number 4 (the snake is 4 bytes long) in register A
-        0x85, 0x03, // store value of register A at address $03
+        0xa9, 0x04, // 7: start length, put the dec number 4 (the snake is 4 bytes long) in register A
+        0x85, 0x03, // 8: store value of register A at address $03
         
-        0xa9, 0x11, // put the hex number $11 (dec 17) in register A
-        0x85, 0x10, // store value of register A at address hex 10
+        0xa9, 0x11, // 9: put the hex number $11 (dec 17) in register A
+        0x85, 0x10, // 10: store value of register A at address hex 10
         
-        0xa9, 0x10, // put the hex number $10 (dec 16) in register A
-        0x85, 0x12, // store value of register A at address hex $12
-        0xa9, 0x0f, // put the hex number $0f (dec 15) in register A
-        0x85, 0x14, // store value of register A at address hex $14
+        0xa9, 0x10, // 11:put the hex number $10 (dec 16) in register A
+        0x85, 0x12, // 12: store value of register A at address hex $12
+        0xa9, 0x0f, // 13: put the hex number $0f (dec 15) in register A
+        0x85, 0x14, // 14: store value of register A at address hex $14
         
-        
-        0xa9, 0x04, // put the hex number $04 in register A
-        0x85, 0x11, // store value of register A at address hex 11
-        0x85, 0x13, // store value of register A at address hex 13
-        0x85, 0x15, // store value of register A at address hex 15
-        0x60, // rts
+        0xa9, 0x04, // 15: put the hex number $04 in register A
+        0x85, 0x11, // 16: store value of register A at address hex 11
+        0x85, 0x13, // 17: store value of register A at address hex 13
+        0x85, 0x15, // 18: store value of register A at address hex 15
+        0x60, // 19: rts
         
         // generateApplePosition: 
-        0xa5, 0xfe, // load a random number between 0 and 255 from address $fe into register A
-        0x85, 0x00, // store value of register A at address hex 00
+        0xa5, 0xfe, // 20: load a random number between 0 and 255 from address $fe into register A
+        0x85, 0x00, // 21: store value of register A at address hex 00
         
-        0xa5, 0xfe, //load a random number from address $fe into register A
+        0xa5, 0xfe, // 22: load a random number from address $fe into register A
         
-        0x29, 0x03, // mask out lowest 2 bits
-        0x18, // clear carry flag 
-        0x69, 0x02, // add to register A, using carry bit for overflow.
-        0x85, 0x01, // store value of y coordinate from register A into address $01
-        0x60, // rts
+        0x29, 0x03, // 23: mask out lowest 2 bits
+        0x18, // 24: clear carry flag 
+        0x69, 0x02, // 25: add to register A, using carry bit for overflow.
+        0x85, 0x01, // 26: store value of y coordinate from register A into address $01
+        0x60, // 27: rts
         
         // loop:
-        0x20, 0x4d, 0x06, // jump to subroutine readKeys
-        0x20, 0x8d, 0x06, // jump to subroutine checkCollision
-        0x20, 0xc3, 0x06, // jump to subroutine updateSnake
-        0x20, 0x19, 0x07, // jump to subroutine drawApple
-        0x20, 0x20, 0x07, // jump to subroutine drawSnake
-        0x20, 0x2d, 0x07, // jump to subroutine spinWheels
-        0x4c, 0x38, 0x06, // jump to loop (this is what makes it loop)
+        0x20, 0x4d, 0x06, // 28: jump to subroutine readKeys
+        0x20, 0x8d, 0x06, // 29: jump to subroutine checkCollision
+        0x20, 0xc3, 0x06, // 30: jump to subroutine updateSnake
+        0x20, 0x19, 0x07, // 31: jump to subroutine drawApple
+        0x20, 0x20, 0x07, // 32: jump to subroutine drawSnake
+        0x20, 0x2d, 0x07, // 33: jump to subroutine spinWheels
+        0x4c, 0x38, 0x06, // 34: jump to loop (this is what makes it loop)
         
         // readKeys:
-        0xa5, 0xff, // load the value of the latest keypress from address $ff into register A
-        0xc9, 0x77, // compare value in register A to hex $77 (W)
-        0xf0, 0x0d, // Branch On Equal, to upKey
-        0xc9, 0x64, // compare value in register A to hex $64 (D)
-        0xf0, 0x14, // Branch On Equal, to rightKey
-        0xc9, 0x73, // Branch On Equal, to rightKey
-        0xf0, 0x1b, // Branch On Equal, to downKey
-        0xc9, 0x61, // compare value in register A to hex $61 (A)
-        0xf0, 0x22, //Branch On Equal, to leftKey
-        0x60, // rts
+        0xa5, 0xff, // 35: load the value of the latest keypress from address $ff into register A
+        0xc9, 0x77, // 36: compare value in register A to hex $77 (W)
+        0xf0, 0x0d, // 37: Branch On Equal, to upKey
+        0xc9, 0x64, // 38: compare value in register A to hex $64 (D)
+        0xf0, 0x14, // 39: Branch On Equal, to rightKey
+        0xc9, 0x73, // 40: compare value in register A to hex &73 (S)
+        0xf0, 0x1b, // 41: Branch On Equal, to downKey
+        0xc9, 0x61, // 42: compare value in register A to hex $61 (A)
+        0xf0, 0x22, // 43: Branch On Equal, to leftKey
+        0x60, // 44: rts
         
         // upKey:
-        0xa9, 0x04, //load value 4 into register A, correspoding to the value for DOWN
-        0x24, 0x02, // AND with value at address $02 (the current direction), setting the zero flag if the result of ANDing the two values is 0. So comparing to 4 (bin 0100) only sets zero flag if current direction is 4 (DOWN). So for an illegal move (current direction is DOWN), the result of an AND would be a non zero value so the zero flag would not be set. For a legal move the bit in the new direction should not be the same as the one set for DOWN, so the zero flag needs to be set
-        0xd0, 0x26, // Branch If Not Equal: meaning the zero flag is not set.
-        0xa9, 0x01, // Ending up here means the move is legal, load the value 1 (UP) into register A
-        0x85, 0x02, // Store the value of A (the new direction) into register A
-        0x60, // rts
+        0xa9, 0x04, // 45: load value 4 into register A, correspoding to the value for DOWN
+        0x24, 0x02, // 46: AND with value at address $02 (the current direction), setting the zero flag if the result of ANDing the two values is 0. So comparing to 4 (bin 0100) only sets zero flag if current direction is 4 (DOWN). So for an illegal move (current direction is DOWN), the result of an AND would be a non zero value so the zero flag would not be set. For a legal move the bit in the new direction should not be the same as the one set for DOWN, so the zero flag needs to be set
+        0xd0, 0x26, // 47: Branch If Not Equal: meaning the zero flag is not set.
+        0xa9, 0x01, // 48: Ending up here means the move is legal, load the value 1 (UP) into register A
+        0x85, 0x02, // 49: Store the value of A (the new direction) into register A
+        0x60, // 50: rts
         
         // rightKey: 
-        0xa9, 0x08, // load value 8 into register A, corresponding to the value for LEFT
-        0x24, 0x02, // AND with current direction at address $02 and check if result is zero
-        0xd0, 0x1b, // Branch If Not Equal: meaning the zero flag is not set.
-        0xa9, 0x02, // Ending up here means the move is legal, load the value 2 (RIGHT) into register A
-        0x85, 0x02, // Store the value of A (the new direction) into register A
-        0x60, // rts
+        0xa9, 0x08, // 51: load value 8 into register A, corresponding to the value for LEFT
+        0x24, 0x02, // 52: AND with current direction at address $02 and check if result is zero
+        0xd0, 0x1b, // 53: Branch If Not Equal: meaning the zero flag is not set.
+        0xa9, 0x02, // 54: Ending up here means the move is legal, load the value 2 (RIGHT) into register A
+        0x85, 0x02, // 55: Store the value of A (the new direction) into register A
+        0x60, // 56: rts
         
         // downKey:
-        0xa9, 0x01, // load value 1 into register A, correspoding to the value for UP
-        0x24, 0x02, // AND with current direction at address $02 and check if result is zero
-        0xd0, 0x10, // Branch If Not Equal: meaning the zero flag is not set.
-        0xa9, 0x04, // Ending up here means the move is legal, load the value 4 (DOWN) into register A
-        0x85, 0x02, // Store the value of A (the new direction) into register A
-        0x60, // rts
+        0xa9, 0x01, // 57: load value 1 into register A, correspoding to the value for UP
+        0x24, 0x02, // 58: AND with current direction at address $02 and check if result is zero
+        0xd0, 0x10, // 59: Branch If Not Equal: meaning the zero flag is not set.
+        0xa9, 0x04, // 60: Ending up here means the move is legal, load the value 4 (DOWN) into register A
+        0x85, 0x02, // 61: Store the value of A (the new direction) into register A
+        0x60, // 62: rts
         
         // leftKey:
         0xa9, 0x02, // load value 1 into register A, correspoding to the value for RIGHT

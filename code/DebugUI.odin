@@ -29,6 +29,7 @@ debug_code_data_entry :: struct
     Arg2 : u8,
     RealPosition : u16,
     LineNumber : int,
+    Breakpoint : bool,
 }
 
 // TODO(Barret5Ocal): Need to find a way to get the size of this array
@@ -120,6 +121,8 @@ CreateUIWindow :: proc()
     
 }
 
+BreakLine : int = 45;
+
 UISetup :: proc()
 {
     r : int =0;
@@ -140,8 +143,9 @@ UISetup :: proc()
             Arg2 = Game[i + 2];
         }
         
-        //append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r});
-        DebugCodeData[r] = {Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r};
+        DebugCodeData[r] = {Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false};
+        
+        if r == BreakLine do DebugCodeData[r].Breakpoint = true;
         
         i += cast(int)(Opcode.Len - 1); 
         
@@ -162,7 +166,10 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     
     mu.input_scroll(ctx, Inputs.MouseWheel.x * 30, Inputs.MouseWheel.y * -30);
     
-    if Inputs.MouseLeft.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    if Inputs.MouseLeft.Down 
+    {
+        mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    }
     if Inputs.MouseLeft.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
     if Inputs.MouseMiddle.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
     if Inputs.MouseMiddle.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
@@ -195,6 +202,8 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
                 mu.label(ctx, "Current");
                 //CurrentStepData = e;
                 CurrentStepData = &DebugCodeData[i];
+                
+                if e.Breakpoint do debug_data.State = debug_state.BREAKPOINT;
             }
             
         }
@@ -219,6 +228,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         //}
     }
     
+    // TODO(Barret5Ocal): need to be able to put breakpoints on individual points in the code. 
     if mu.window(ctx, "BreakPoints", {40, 500, 200, 150}, opts) 
     {
         if .SUBMIT in mu.button(ctx, "Break Code")

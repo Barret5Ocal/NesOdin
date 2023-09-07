@@ -81,7 +81,7 @@ CreateUIWindow :: proc()
 			}
 		}
 	}
-    //*/
+    
     renderer : ^sdl2.Renderer = sdl2.CreateRenderer(UiWindow, -1, {.ACCELERATED, .PRESENTVSYNC});
     if renderer == nil 
     {
@@ -121,7 +121,7 @@ CreateUIWindow :: proc()
     
 }
 
-BreakLine : int = 45;
+BreakLine : int = -1;
 
 UISetup :: proc()
 {
@@ -162,14 +162,13 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
 {
     ctx := &state.mu_ctx;
     
+    //if Inputs.MouseMotion.x > 0 && Inputs.MouseMotion.y > 0 do  
     mu.input_mouse_move(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.x);
     
     mu.input_scroll(ctx, Inputs.MouseWheel.x * 30, Inputs.MouseWheel.y * -30);
     
-    if Inputs.MouseLeft.Down 
-    {
-        mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
-    }
+    if Inputs.MouseLeft.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
+    
     if Inputs.MouseLeft.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
     if Inputs.MouseMiddle.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
     if Inputs.MouseMiddle.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
@@ -245,6 +244,11 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
                 debug_data.State = debug_state.STEPONCE;
             }
         }
+        
+        mu.layout_row(ctx, {64, -1}, 0);
+        
+        mu.label(ctx, fmt.tprintf("%i", Inputs.MouseMotion.x));
+        mu.label(ctx, fmt.tprintf("%i", Inputs.MouseMotion.y));
         
     }
     

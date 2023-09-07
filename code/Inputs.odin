@@ -35,20 +35,18 @@ GetInputs :: proc(Inputs : ^inputs)
 {
     Inputs^ = inputs{};
     
-    Event : sdl2.Event;
-    
-    for sdl2.PollEvent(&Event) == true
+    for e : sdl2.Event; sdl2.PollEvent(&e) == true;
     {
-#partial switch Event.type
+#partial switch e.type
         {
-            case sdl2.EventType.QUIT:
+            case .QUIT:
             {
                 sdl2.Quit();
             }
             
-            case sdl2.EventType.KEYDOWN:
+            case .KEYDOWN:
             {
-#partial switch Event.key.keysym.scancode
+#partial switch e.key.keysym.scancode
                 {
                     case sdl2.Scancode.W: 
                     fallthrough;
@@ -80,19 +78,51 @@ GetInputs :: proc(Inputs : ^inputs)
                     }
                 }
                 
-                
+            }
+            case .KEYUP:
+            {
+#partial switch e.key.keysym.scancode
+                {
+                    case sdl2.Scancode.W: 
+                    fallthrough;
+                    case sdl2.Scancode.UP: 
+                    {
+                        Inputs.W.Up = true;
+                        Inputs.Up.Up = true;
+                    }
+                    case sdl2.Scancode.A: 
+                    fallthrough;
+                    case sdl2.Scancode.LEFT: 
+                    {
+                        Inputs.A.Up = true;
+                        Inputs.Left.Up = true;
+                    }
+                    case sdl2.Scancode.S: 
+                    fallthrough;
+                    case sdl2.Scancode.DOWN:
+                    {
+                        Inputs.S.Up = true;
+                        Inputs.Down.Up = true;
+                    }
+                    case sdl2.Scancode.D: 
+                    fallthrough;
+                    case sdl2.Scancode.RIGHT: 
+                    {
+                        Inputs.D.Up = true;
+                        Inputs.Right.Up = true;
+                    }
+                }
                 
             }
             
-            // TODO(Barret5Ocal): figure out how to put this in inputs
             case .MOUSEMOTION:
-            Inputs.MouseMotion.a = [2]i32{Event.motion.x, Event.motion.y};
+            Inputs.MouseMotion.a = [2]i32{e.motion.x, e.motion.y};
             case .MOUSEWHEEL:
-            Inputs.MouseWheel.a = [2]i32{Event.wheel.x, Event.wheel.y};
+            Inputs.MouseWheel.a = [2]i32{e.wheel.x, e.wheel.y};
             
             case .MOUSEBUTTONDOWN:
             {
-                switch Event.button.button
+                switch e.button.button
                 {
                     case sdl2.BUTTON_LEFT:  
                     Inputs.MouseLeft.Down = true;
@@ -104,7 +134,7 @@ GetInputs :: proc(Inputs : ^inputs)
             }
             case .MOUSEBUTTONUP:
             {
-                switch Event.button.button
+                switch e.button.button
                 {
                     case sdl2.BUTTON_LEFT:  
                     Inputs.MouseLeft.Up = true;

@@ -131,12 +131,12 @@ main :: proc()
         0x60, // 62: rts
         
         // leftKey:
-        0xa9, 0x02, // load value 1 into register A, correspoding to the value for RIGHT
-        0x24, 0x02, // AND with current direction at address $02 and check if result is zero
-        0xd0, 0x05, // Branch If Not Equal: meaning the zero flag is not set.
-        0xa9, 0x08, // Ending up here means the move is legal, load the value 8 (LEFT) into register A
-        0x85, 0x02, // Store the value of A (the new direction) into register A
-        0x60, // rts
+        0xa9, 0x02, // 63: load value 2 into register A, correspoding to the value for RIGHT
+        0x24, 0x02, // 64: AND with current direction at address $02 and check if result is zero
+        0xd0, 0x05, // 65: Branch If Not Equal: meaning the zero flag is not set.
+        0xa9, 0x08, // 66: Ending up here means the move is legal, load the value 8 (LEFT) into register A
+        0x85, 0x02, // 67: Store the value of A (the new direction) into register A
+        0x60, // 68: rts
         
         // illegalMove:
         0x60, // rts

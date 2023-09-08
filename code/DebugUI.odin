@@ -121,7 +121,7 @@ CreateUIWindow :: proc()
     
 }
 
-BreakLine : int = -1;
+BreakLine : int = 63;
 
 UISetup :: proc()
 {
@@ -153,7 +153,7 @@ UISetup :: proc()
         
     }
     
-    debug_data.State = debug_state.BREAKPOINT; 
+    //debug_data.State = debug_state.BREAKPOINT; 
 }
 
 CurrentStepData : ^debug_code_data_entry;
@@ -174,6 +174,19 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     if Inputs.MouseMiddle.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .MIDDLE);
     if Inputs.MouseRight.Down do mu.input_mouse_down(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .LEFT);
     if Inputs.MouseRight.Up do mu.input_mouse_up(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y, .RIGHT);
+    
+    if Inputs.Space.Down 
+    {
+        if debug_data.State == debug_state.NORMAL do debug_data.State = debug_state.BREAKPOINT;
+        else if debug_data.State == debug_state.BREAKPOINT do debug_data.State = debug_state.NORMAL;
+    }
+    if Inputs.B.Down 
+    {
+        if debug_data.State  == debug_state.BREAKPOINT
+        {
+            debug_data.State = debug_state.STEPONCE;
+        }
+    }
     
     @static opts := mu.Options{.NO_CLOSE};
     mu.begin(ctx);
@@ -202,7 +215,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
                 //CurrentStepData = e;
                 CurrentStepData = &DebugCodeData[i];
                 
-                if e.Breakpoint do debug_data.State = debug_state.BREAKPOINT;
+                if e.Breakpoint && debug_data.State == debug_state.NORMAL do debug_data.State = debug_state.BREAKPOINT;
             }
             
         }
@@ -221,7 +234,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
             mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
             
             mu.layout_row(ctx, {54}, 0);
-            mu.label(ctx, fmt.tprintf("%i", debug_data.ProgramCounter));
+            mu.label(ctx, fmt.tprintf("%s", debug_data.State));
             //mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
         }
         //}
@@ -252,7 +265,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
     }
     
-    if mu.window(ctx, "Cpu", {300, 500, 200, 150}, opts)
+    if mu.window(ctx, "Cpu", {300, 500, 200, 200}, opts)
     {
         mu.layout_row(ctx, {64, -1}, 0);
         mu.label(ctx, fmt.tprintf("Register A"));
@@ -269,6 +282,10 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         Inputs := MemRead(Cpu, 0xff);
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Inputs: 0x%X", Inputs));
+        
+        mu.layout_row(ctx, {100}, 0);
+        mu.label(ctx, fmt.tprintf("Zero Flag: %v", cpu_flags.ZERO in Cpu.Status));
+        
     }
     
     mu.end(ctx);

@@ -27,13 +27,20 @@ inputs :: struct
     MouseLeft : digital_button,
     MouseMiddle : digital_button,
     MouseRight : digital_button,
+    Space : digital_button,
+    B : digital_button,
     MouseMotion : v2,
     MouseWheel : v2,
 }
 
+Mousepersist : v2;
+//Wheelpersist : v2;
+
 GetInputs :: proc(Inputs : ^inputs)
 {
     Inputs^ = inputs{};
+    Inputs.MouseMotion = Mousepersist;
+    //Inputs.MouseWheel = Wheelpersist;
     
     for e : sdl2.Event; sdl2.PollEvent(&e) == true;
     {
@@ -76,6 +83,12 @@ GetInputs :: proc(Inputs : ^inputs)
                         Inputs.D.Down = true;
                         Inputs.Right.Down = true;
                     }
+                    case .SPACE: 
+                    {
+                        Inputs.Space.Down = true;
+                    }
+                    case .B:
+                    Inputs.B.Down = true;
                 }
                 
             }
@@ -111,12 +124,21 @@ GetInputs :: proc(Inputs : ^inputs)
                         Inputs.D.Up = true;
                         Inputs.Right.Up = true;
                     }
+                    case .SPACE: 
+                    {
+                        Inputs.Space.Up = true;
+                    }
+                    case .B:
+                    Inputs.B.Up = true;
                 }
                 
             }
             
             case .MOUSEMOTION:
-            Inputs.MouseMotion.a = [2]i32{e.motion.x, e.motion.y};
+            {
+                Mousepersist.a = [2]i32{e.motion.x, e.motion.y}
+                Inputs.MouseMotion = Mousepersist;
+            }
             case .MOUSEWHEEL:
             Inputs.MouseWheel.a = [2]i32{e.wheel.x, e.wheel.y};
             

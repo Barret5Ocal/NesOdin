@@ -121,7 +121,7 @@ CreateUIWindow :: proc()
     
 }
 
-BreakLine : int = 63;
+BreakLine : int = -1;
 
 UISetup :: proc()
 {

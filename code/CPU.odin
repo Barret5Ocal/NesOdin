@@ -519,9 +519,9 @@ Asl :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 
 Bit :: proc(Cpu : ^cpu, AddessingMode : addressing_mode)
 {
-    Addr := GetOperandAddress(Cpu, AddessingMode);
-    Value := MemRead(Cpu, Addr);
-    Result := Cpu.RegisterA & Value;
+    Addr : u16 = GetOperandAddress(Cpu, AddessingMode);
+    Value : u8 = MemRead(Cpu, Addr);
+    Result : u8 = Cpu.RegisterA & Value;
     if Result == 0 
     {
         Cpu.Status += {.ZERO};

@@ -53,7 +53,7 @@ main :: proc()
         0x60, // 4: rts
         
         // initSnake: 
-        0xa9, 0x02, // 5: start direction, put the dec number 2 in register A
+        0xa9, 0x01, // 5: start direction, put the dec number 1 in register A
         0x85, 0x02, // 6: store value of register A at address $02
         
         0xa9, 0x04, // 7: start length, put the dec number 4 (the snake is 4 bytes long) in register A
@@ -111,7 +111,7 @@ main :: proc()
         0x24, 0x02, // 46: AND with value at address $02 (the current direction), setting the zero flag if the result of ANDing the two values is 0. So comparing to 4 (bin 0100) only sets zero flag if current direction is 4 (DOWN). So for an illegal move (current direction is DOWN), the result of an AND would be a non zero value so the zero flag would not be set. For a legal move the bit in the new direction should not be the same as the one set for DOWN, so the zero flag needs to be set
         0xd0, 0x26, // 47: Branch If Not Equal: meaning the zero flag is not set.
         0xa9, 0x01, // 48: Ending up here means the move is legal, load the value 1 (UP) into register A
-        0x85, 0x02, // 49: Store the value of A (the new direction) into register A
+        0x85, 0x02, // 49: Store the value of A (the new direction) into memory location $02
         0x60, // 50: rts
         
         // rightKey: 
@@ -119,7 +119,7 @@ main :: proc()
         0x24, 0x02, // 52: AND with current direction at address $02 and check if result is zero
         0xd0, 0x1b, // 53: Branch If Not Equal: meaning the zero flag is not set.
         0xa9, 0x02, // 54: Ending up here means the move is legal, load the value 2 (RIGHT) into register A
-        0x85, 0x02, // 55: Store the value of A (the new direction) into register A
+        0x85, 0x02, // 55: Store the value of A (the new direction) into memory location $02
         0x60, // 56: rts
         
         // downKey:
@@ -127,7 +127,7 @@ main :: proc()
         0x24, 0x02, // 58: AND with current direction at address $02 and check if result is zero
         0xd0, 0x10, // 59: Branch If Not Equal: meaning the zero flag is not set.
         0xa9, 0x04, // 60: Ending up here means the move is legal, load the value 4 (DOWN) into register A
-        0x85, 0x02, // 61: Store the value of A (the new direction) into register A
+        0x85, 0x02, // 61: Store the value of A (the new direction) into memory location $02
         0x60, // 62: rts
         
         // leftKey:
@@ -135,125 +135,125 @@ main :: proc()
         0x24, 0x02, // 64: AND with current direction at address $02 and check if result is zero
         0xd0, 0x05, // 65: Branch If Not Equal: meaning the zero flag is not set.
         0xa9, 0x08, // 66: Ending up here means the move is legal, load the value 8 (LEFT) into register A
-        0x85, 0x02, // 67: Store the value of A (the new direction) into register A
+        0x85, 0x02, // 67: Store the value of A (the new direction) into memory location $02
         0x60, // 68: rts
         
         // illegalMove:
-        0x60, // rts
+        0x60, // 69: rts
         
         // checkCollision:
-        0x20, 0x94, 0x06, // jump to subroutine checkAppleCollision
-        0x20, 0xa8, 0x06, // jump to subroutine checkSnakeCollision
+        0x20, 0x94, 0x06, // 70: jump to subroutine checkAppleCollision
+        0x20, 0xa8, 0x06, // 71: jump to subroutine checkSnakeCollision
         0x60, // rts
         
         // checkAppleCollision:
-        0xa5, 0x00, // load value at address $00 (the least significant byte of the apple's position) into register A
-        0xc5, 0x10, // compare to the value stored at address $10 (the least significant byte of the position of the snake's head)
-        0xd0, 0x0d, // if different, branch to doneCheckingAppleCollision
-        0xa5, 0x01, // load value of address $01 (the most significant byte of the apple's position) into register A
-        0xc5, 0x11, // compare the value stored at address $11 (the most significant byte of the position of the snake's head)
-        0xd0, 0x07, // if different, branch to doneCheckingAppleCollision Ending up here means the coordinates of the snake head are equal to that of the apple: eat apple
-        0xe6, 0x03, // increment the value held in memory $03 (snake length)
-        0xe6, 0x03, // twice because we're adding two bytes for one segment
+        0xa5, 0x00, // 72: load value at address $00 (the least significant byte of the apple's position) into register A
+        0xc5, 0x10, // 73: compare to the value stored at address $10 (the least significant byte of the position of the snake's head)
+        0xd0, 0x0d, // 74: if different, branch to doneCheckingAppleCollision
+        0xa5, 0x01, // 75: load value of address $01 (the most significant byte of the apple's position) into register A
+        0xc5, 0x11, // 76: compare the value stored at address $11 (the most significant byte of the position of the snake's head)
+        0xd0, 0x07, // 77: if different, branch to doneCheckingAppleCollision Ending up here means the coordinates of the snake head are equal to that of the apple: eat apple
+        0xe6, 0x03, // 78: increment the value held in memory $03 (snake length)
+        0xe6, 0x03, // 79: twice because we're adding two bytes for one segment
         
-        0x20, 0x2a, 0x06, //jump to subroutine generateApplePosition
+        0x20, 0x2a, 0x06, // 80: jump to subroutine generateApplePosition
         
         // doneCheckingAppleCollision:
-        0x60, 
+        0x60, // 81: rts, 
         
         // checkSnakeCollision:
-        0xa2, 0x02,
+        0xa2, 0x02, // 82: 
         
         // snakeCollisionLoop:
-        0xb5, 0x10, // ;load the value stored at address $10 (the least significant byte of the location of the snake's head) plus the value of the x register (2 in the first iteration) to get the least significant byte of the position of the next snake segment
-        0xc5, 0x10, // compare to the value at address $10 (the least significant byte of the position of the snake's head
-        0xd0, 0x06, // if not equals, we haven't found a collision yet, branch to continueCollisionLoop to continue the loop
+        0xb5, 0x10, // 83: ;load the value stored at address $10 (the least significant byte of the location of the snake's head) plus the value of the x register (2 in the first iteration) to get the least significant byte of the position of the next snake segment
+        0xc5, 0x10, // 84: compare to the value at address $10 (the least significant byte of the position of the snake's head
+        0xd0, 0x06, // 85: if not equals, we haven't found a collision yet, branch to continueCollisionLoop to continue the loop
         
         // maybeCollided:
-        0xb5, 0x11, //load the value stored at address $11 (most significant byte of the location of the snake's head) plus the value of the x register (2 in the first iteration) to get the most significant byte of the position of the next snake segment
-        0xc5, 0x11, // compare to the value at address $11 (the most significant byte of the position of the snake head)
-        0xf0, 0x09, // both position bytes of the compared segment of the snake bodyare equal to those of the head, so we have a collision of the snake's head with its own body.
+        0xb5, 0x11, // 86: load the value stored at address $11 (most significant byte of the location of the snake's head) plus the value of the x register (2 in the first iteration) to get the most significant byte of the position of the next snake segment
+        0xc5, 0x11, // 87: compare to the value at address $11 (the most significant byte of the position of the snake head)
+        0xf0, 0x09, // 88: both position bytes of the compared segment of the snake bodyare equal to those of the head, so we have a collision of the snake's head with its own body.
         
         // continueCollisionLoop:
-        0xe8, // increment the value of the x register
-        0xe8, // increment the value of the x register
-        0xe4, 0x03, // compare the value in the x register to the value stored at address $03 (snake length).
-        0xf0, 0x06, // if equals, we got to last section with no collision: branch to didntCollide
-        0x4c, 0xaa, 0x06, // jump to snakeCollisionLoop to continue the loop
+        0xe8, // 89: increment the value of the x register
+        0xe8, // 90: increment the value of the x register
+        0xe4, 0x03, // 91: compare the value in the x register to the value stored at address $03 (snake length).
+        0xf0, 0x06, // 92: if equals, we got to last section with no collision: branch to didntCollide
+        0x4c, 0xaa, 0x06, // 93: jump to snakeCollisionLoop to continue the loop
         
         // didCollide:
-        0x4c, 0x35, 0x07, // jump to gameOver
+        0x4c, 0x35, 0x07, // 94: jump to gameOver
         
         // didntCollide:
-        0x60, // rts
+        0x60, // 95: rts
         
         // updateSnake: 
-        0xa6, 0x03, // load the value stored at address $03 (snake length) into register X
-        0xca, // decrement the value in the X register
-        0x8a, // transfer the value stored in the X register into the A register. WHY?
+        0xa6, 0x03, // 96: load the value stored at address $03 (snake length) into register X
+        0xca, // 97: decrement the value in the X register
+        0x8a, // 98: transfer the value stored in the X register into the A register. WHY?
         
         // updateloop:
-        0xb5, 0x10, // load the value stored at address $10 + x into register A
-        0x95, 0x12, // store the value of register A into address $12  plus the value of register X
-        0xca, // decrement X, and set negative flag if value becomes negative
-        0x10, 0xf9, // branch to updateLoop if positive (negative flag not set) now determine where to move the head, based on the direction of the snake lsr:Logical Shift Right. Shift all bits in register A one bit to the right the bit that "falls off" is stored in the carry flag
-        0xa5, 0x02, // load the value from address $02 (direction) into register A
-        0x4a, // shift to right
-        0xb0, 0x09, // if a 1 "fell off", we started with bin 0001, so the snakes needs to go up
-        0x4a, // shift to right
-        0xb0, 0x19, // if a 1 "fell off", we started with bin 0010, so the snakes needs to go right
-        0x4a, // shift to right
-        0xb0, 0x1f, // if a 1 "fell off", we started with bin 0100, so the snakes needs to go down
-        0x4a, // shift to right
-        0xb0, 0x2f, // if a 1 "fell off", we started with bin 1000, so the snakes needs to go left
+        0xb5, 0x10, // 99: load the value stored at address $10 + x into register A
+        0x95, 0x12, // 100: store the value of register A into address $12  plus the value of register X
+        0xca, // 101: decrement X, and set negative flag if value becomes negative
+        0x10, 0xf9, // 102: branch to updateLoop if positive (negative flag not set) now determine where to move the head, based on the direction of the snake lsr:Logical Shift Right. Shift all bits in register A one bit to the right the bit that "falls off" is stored in the carry flag
+        0xa5, 0x02, // 103: load the value from address $02 (direction) into register A
+        0x4a, // 104: shift to right
+        0xb0, 0x09, // 105: if a 1 "fell off", we started with bin 0001, so the snakes needs to go up
+        0x4a, // 106: shift to right
+        0xb0, 0x19, // 107: if a 1 "fell off", we started with bin 0010, so the snakes needs to go right
+        0x4a, // 108: shift to right
+        0xb0, 0x1f, // 109: if a 1 "fell off", we started with bin 0100, so the snakes needs to go down
+        0x4a, // 110: shift to right
+        0xb0, 0x2f, // 111: if a 1 "fell off", we started with bin 1000, so the snakes needs to go left
         
         // up:
-        0xa5, 0x10, // ;put value stored at address $10 (the least significant byte, meaning the position in a 8x32 strip) in register A
-        0x38, // set carry flag
-        0xe9, 0x20, // ;Subtract with Carry: subtract hex $20 (dec 32) together with the NOT of the carry bit from value in register A. If overflow occurs the carry bit is clear. This moves the snake up one row in its strip and checks for overflow
-        0x85, 0x10, // store value of register A at address $10 (the least significant byte of the head's position)
-        0x90, 0x01, // If the carry flag is clear, we had an overflow because of the subtraction, so we need to move to the strip above the current one
-        0x60, // rts 
+        0xa5, 0x10, // 112: ;put value stored at address $10 (the least significant byte, meaning the position in a 8x32 strip) in register A
+        0x38, // 113: set carry flag
+        0xe9, 0x20, // 114: ;Subtract with Carry: subtract hex $20 (dec 32) together with the NOT of the carry bit from value in register A. If overflow occurs the carry bit is clear. This moves the snake up one row in its strip and checks for overflow
+        0x85, 0x10, // 115: store value of register A at address $10 (the least significant byte of the head's position)
+        0x90, 0x01, // 116: If the carry flag is clear, we had an overflow because of the subtraction, so we need to move to the strip above the current one
+        0x60, // 117: rts 
         
         // upup:
-        0xc6, 0x11, //decrement the most significant byte of the snake's head's position to move the snake's head to the next up 8x32 strip
-        0xa9, 0x01, // load hex value $1 (dec 1) into register A
-        0xc5, 0x11, // compare the value at address $11 (snake head's most significant byte, determining which strip it's in). If it's 1, we're one strip too (the first one has a most significant byte of $02), which means the snake hit the top of the screen
-        0xf0, 0x28, // branch if equal to collision
-        0x60, // rts
+        0xc6, 0x11, // 118: decrement the most significant byte of the snake's head's position to move the snake's head to the next up 8x32 strip
+        0xa9, 0x01, // 119: load hex value $1 (dec 1) into register A
+        0xc5, 0x11, // 120: compare the value at address $11 (snake head's most significant byte, determining which strip it's in). If it's 1, we're one strip too (the first one has a most significant byte of $02), which means the snake hit the top of the screen
+        0xf0, 0x28, // 121: branch if equal to collision
+        0x60, // 122: rts
         
         // right: 
-        0xe6, 0x10, // increment the value at address $10 (snake head's least significant byte, determining where in the 8x32 strip the head is located) to move the head to the right
-        0xa9, 0x1f, // load value hex $1f (dec 31) into register A
-        0x24, 0x10, // the value stored at address $10 (the snake head coordinate) is ANDed with hex $1f (bin 11111), meaning all multiples of hex $20 (dec 32)zwill be zero (because they all end with bit patterns ending in 5 zeros) if it's zero, it means we hit the right of the screen
-        0xf0, 0x1f, // branch to collision if zero flag is set
-        0x60, // rts
+        0xe6, 0x10, // 123: increment the value at address $10 (snake head's least significant byte, determining where in the 8x32 strip the head is located) to move the head to the right
+        0xa9, 0x1f, // 124: load value hex $1f (dec 31) into register A
+        0x24, 0x10, // 125: the value stored at address $10 (the snake head coordinate) is ANDed with hex $1f (bin 11111), meaning all multiples of hex $20 (dec 32)zwill be zero (because they all end with bit patterns ending in 5 zeros) if it's zero, it means we hit the right of the screen
+        0xf0, 0x1f, // 126: branch to collision if zero flag is set
+        0x60, // 127: rts
         
         // down: 
-        0xa5, 0x10, //put value from address $10 (the least significant byte, meaning theposition in a 8x32 strip) in register A
-        0x18, //clear carry flag
-        0x69, 0x20, // add hex $20 (dec 32) to the value in register A and set the carry flag if overflow occurs
-        0x85, 0x10, // store the result at address $10 
-        0xb0, 0x01, // if the carry flag is set, an overflow occurred when adding hex $20 to the least significant byte of the location of the snake's head, so we need to move the next 8x3 strip
-        0x60, // rts
+        0xa5, 0x10, // 128: put value from address $10 (the least significant byte, meaning theposition in a 8x32 strip) in register A
+        0x18, // 129: clear carry flag
+        0x69, 0x20, // 130: add hex $20 (dec 32) to the value in register A and set the carry flag if overflow occurs
+        0x85, 0x10, // 131: store the result at address $10 
+        0xb0, 0x01, // 132: if the carry flag is set, an overflow occurred when adding hex $20 to the least significant byte of the location of the snake's head, so we need to move the next 8x3 strip
+        0x60, // 133: rts
         
         // downdown:
-        0xe6, 0x11, //increment the value in location hex $11, holding the most significatnt byte of the location of the snake's head.
-        0xa9, 0x06, // load the value hex $6 into the A register
-        0xc5, 0x11, // if the most significant byte of the head's location is equals to 6, we're one strip to far down (the last one was hex $05)
-        0xf0, 0x0c, // if equals to 6, the snake collided with the bottom of the screen
-        0x60, // rts
+        0xe6, 0x11, // 134: increment the value in location hex $11, holding the most significatnt byte of the location of the snake's head.
+        0xa9, 0x06, // 135: load the value hex $6 into the A register
+        0xc5, 0x11, // 136: if the most significant byte of the head's location is equals to 6, we're one strip to far down (the last one was hex $05)
+        0xf0, 0x0c, // 137: if equals to 6, the snake collided with the bottom of the screen
+        0x60, // 138: rts
         
         // left:
-        0xc6, 0x10, // subtract one from the value held in memory position $10 (least significant byte of the snake head position) to make it move left. 
-        0xa5, 0x10, // load value held in memory position $10 (least significant byte of the snake head position) into register A
-        0x29, 0x1f, // AND the value hex $1f (bin 11111) with the value in register A
-        0xc9, 0x1f, // compare the ANDed value above with bin 11111.
-        0xf0, 0x01, // branch to collision if equals
-        0x60, // rts 
+        0xc6, 0x10, // 139: subtract one from the value held in memory position $10 (least significant byte of the snake head position) to make it move left. 
+        0xa5, 0x10, // 140: load value held in memory position $10 (least significant byte of the snake head position) into register A
+        0x29, 0x1f, // 141: AND the value hex $1f (bin 11111) with the value in register A
+        0xc9, 0x1f, // 142: compare the ANDed value above with bin 11111.
+        0xf0, 0x01, // 143: branch to collision if equals
+        0x60, // 144: rts 
         
         // collision:
-        0x4c, 0x35, 0x07, //jump to gameOver
+        0x4c, 0x35, 0x07, // 145: jump to gameOver
         
         // drawApple:
         0xa0, 0x00, // load the value 0 into the Y register

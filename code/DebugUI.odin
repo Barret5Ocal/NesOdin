@@ -121,7 +121,7 @@ CreateUIWindow :: proc()
     
 }
 
-BreakLine : int = -1;
+BreakLine : int = 54;
 
 UISetup :: proc()
 {
@@ -285,6 +285,11 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Zero Flag: %v", cpu_flags.ZERO in Cpu.Status));
+        
+        mu.layout_row(ctx, {100}, 0);
+        mu.label(ctx, fmt.tprintf("Direction: 0x%X", MemRead(Cpu, 0x02)));
+        
+        
         
     }
     

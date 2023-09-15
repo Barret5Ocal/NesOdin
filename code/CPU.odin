@@ -311,6 +311,8 @@ RunOpcode :: proc(Cpu : ^cpu)
         
         case 0xA0, 0xA4, 0xB4, 0xAC, 0xBC: Ldy(Cpu, Opcode.AddressingMode);
         
+        case  0x4A: LsrAccumulator(Cpu);
+        
         case 0x46, 0x56, 0x4E, 0x5E: Lsr(Cpu, Opcode.AddressingMode);
         
         case 0x09, 0x05, 0x15, 0x0D, 0x1D, 0x19, 0x01, 0x11: Ora(Cpu, Opcode.AddressingMode);
@@ -648,6 +650,21 @@ Inc :: proc(Cpu : ^cpu, AddressingMode : addressing_mode) -> u8
     MemWrite(Cpu, Addr, Data);
     UpdateZeroAndNegativeFlags(Cpu, Data);
     return Data; 
+}
+
+LsrAccumulator :: proc (Cpu : ^cpu)
+{
+    Data := Cpu.RegisterA;
+    if Data & 1 == 1 
+    {
+        SetCarryFlag(Cpu);
+    }
+    else 
+    {
+        ClearCarryFlag(Cpu);
+    }
+    Data = Data >> 1; 
+    SetRegisterA(Cpu, Data);
 }
 
 Lsr :: proc (Cpu : ^cpu, AddressingMode : addressing_mode) -> u8

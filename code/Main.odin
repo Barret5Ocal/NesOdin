@@ -264,6 +264,7 @@ main :: proc()
         // NOTE(Barret5Ocal): It does not matter which source I get this code from. It does not make any sence. The problem might not be my code but the tutorial. 
         
         // drawSnake:
+        /*
         0xa6, 0x03, // load contends of $03 to x register
         0xa9, 0x00, // loads 0 into the accumulator
         0x81, 0x10, // stores contents of accumulator in memory location $10
@@ -271,8 +272,8 @@ main :: proc()
         0xa9, 0x01, // loads 1 into the accumlator
         0x81, 0x10, // stores contents of accumulator in memory location $10
         0x60, //rts
+        */
         
-        /*
         0xa2, 0x00, // set the value of the X register to 0 
         0xa9, 0x01, // set the value of the A register to 1
         0x81, 0x10, // dereference to the memory address that's stored at address $10 (the two bytes for the location of the head of the snake) and set its value to the one stored in register A
@@ -282,7 +283,7 @@ main :: proc()
         0x81, 0x01, // dereference to the memory address that's stored at address$10, add the length of the snake to it, and store the value of  register A (0) in the resulting address. This draws a black pixel on the tail. Because the snake is moving, the head "draws" on the screen in white as it moves, and the tail works as an eraser, erasing the white trail using black pixels
         //0x81, 0x10, //  dereference to the memory address that's stored at address $10 (the two bytes for the location of the head of the snake) and set its value to the one stored in register A
         0x60, // rts
-        */
+        
         // spinWheels:
         0xa6, 0x00,
         

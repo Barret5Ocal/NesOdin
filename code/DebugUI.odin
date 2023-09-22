@@ -162,8 +162,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
 {
     ctx := &state.mu_ctx;
     
-    //if Inputs.MouseMotion.x > 0 && Inputs.MouseMotion.y > 0 do  
-    mu.input_mouse_move(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.x);
+    mu.input_mouse_move(ctx, Inputs.MouseMotion.x, Inputs.MouseMotion.y);
     
     mu.input_scroll(ctx, Inputs.MouseWheel.x * 30, Inputs.MouseWheel.y * -30);
     
@@ -191,12 +190,12 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     @static opts := mu.Options{.NO_CLOSE};
     mu.begin(ctx);
     
-    if mu.window(ctx, "Game Code", {40, 40, 360, 450}, opts)
+    if mu.window(ctx, "Game Code", {40, 40, 250, 450}, opts)
     {
         
         for e, i in DebugCodeData
         {
-            mu.layout_row(ctx, {54, 100, 100, -1}, 0);
+            mu.layout_row(ctx, {54, 25, 100, -1}, 0);
             mu.label(ctx, fmt.tprintf("%i", i));
             Opcode := OpcodeMap[e.Code];
             mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
@@ -222,22 +221,15 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
     }
     
-    if mu.window(ctx, "Current Position", {405, 40, 100, 100}, opts)
+    if mu.window(ctx, "Screen Data", {300, 40, 200, 450}, opts)
     {
-        //if CurrentStepData.Len > 0 
-        //{
-        mu.layout_row(ctx, {54, -1}, 0);
-        if CurrentStepData != nil
+        for i in 0x0200..<0x600
         {
-            Opcode := OpcodeMap[CurrentStepData.Code];
-            mu.label(ctx, fmt.tprintf("%i", CurrentStepData.LineNumber));
-            mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
-            
-            mu.layout_row(ctx, {54}, 0);
-            mu.label(ctx, fmt.tprintf("%s", debug_data.State));
-            //mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+            ColorIndex := MemRead(Cpu, cast(u16)i);
+            mu.layout_row(ctx, {54, 25, 100, -1}, 0);
+            mu.label(ctx, fmt.tprintf("%i", i));
+            mu.label(ctx, fmt.tprintf("%i", ColorIndex));
         }
-        //}
     }
     
     // TODO(Barret5Ocal): need to be able to put breakpoints on individual points in the code. 
@@ -260,9 +252,16 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
         mu.layout_row(ctx, {64, -1}, 0);
         
-        mu.label(ctx, fmt.tprintf("%i", Inputs.MouseMotion.x));
-        mu.label(ctx, fmt.tprintf("%i", Inputs.MouseMotion.y));
-        
+        if CurrentStepData != nil
+        {
+            Opcode := OpcodeMap[CurrentStepData.Code];
+            mu.label(ctx, fmt.tprintf("%i", CurrentStepData.LineNumber));
+            mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+            
+            mu.layout_row(ctx, {54}, 0);
+            mu.label(ctx, fmt.tprintf("%s", debug_data.State));
+            //mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
+        }
     }
     
     if mu.window(ctx, "Cpu", {300, 500, 200, 200}, opts)
@@ -284,12 +283,13 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         mu.label(ctx, fmt.tprintf("Inputs: 0x%X", Inputs));
         
         mu.layout_row(ctx, {100}, 0);
-        mu.label(ctx, fmt.tprintf("Zero Flag: %v", cpu_flags.ZERO in Cpu.Status));
+        mu.label(ctx, fmt.tprintf("Snake Head: %v", MemReadu16(Cpu, 0x10)));
+        
+        mu.layout_row(ctx, {100}, 0);
+        mu.label(ctx, fmt.tprintf("Snake Length: %v", MemRead(Cpu, 0x03)));
         
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Direction: 0x%X", MemRead(Cpu, 0x02)));
-        
-        
         
     }
     

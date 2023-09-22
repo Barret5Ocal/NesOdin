@@ -256,24 +256,26 @@ main :: proc()
         0x4c, 0x35, 0x07, // 146: jump to gameOver
         
         // drawApple:
-        0xa0, 0x00, // load the value 0 into the Y register
-        0xa5, 0xfe, // load the value stored at address $fe (the random number generator) into register A
-        0x91, 0x00, // dereference to the address stored at address $00 and $01 (the address of the apple on the screen) and set the value to the value of register A and add the value of Y (0) to it. This results in the apple getting a random color
-        0x60, // rts 
+        0xa0, 0x00, // 147: load the value 0 into the Y register
+        0xa5, 0xfe, // 148: load the value stored at address $fe (the random number generator) into register A
+        0x91, 0x00, // 149: dereference to the address stored at address $00 and $01 (the address of the apple on the screen) and set the value to the value of register A and add the value of Y (0) to it. This results in the apple getting a random color
+        0x60, // 150: rts 
         
         // NOTE(Barret5Ocal): It does not matter which source I get this code from. It does not make any sence. The problem might not be my code but the tutorial. 
         
-        // drawSnake:
-        /*
-        0xa6, 0x03, // load contends of $03 to x register
-        0xa9, 0x00, // loads 0 into the accumulator
-        0x81, 0x10, // stores contents of accumulator in memory location $10
-        0xa2, 0x00, // loads 0 into x register
-        0xa9, 0x01, // loads 1 into the accumlator
-        0x81, 0x10, // stores contents of accumulator in memory location $10
-        0x60, //rts
-        */
+        // NOTE(Barret5Ocal): You load the length of the tail into register x and then put zero(color black) at the end of the tail to erase it. The code is starting to make a little more sense, but I need to be able to look into the screen data.
         
+        // NOTE(Barret5Ocal): Actually this does not make that much sense. How does this code erase the tail for the snake if it is going up or down. The position in the texture goes up or down a stride when that happens. So how does adding the lentgh for the snake to the head position do that. Maybe thats still incorrect thinking. The code does not work when the snake is moving left or right either. 
+        
+        // drawSnake:
+        0xa6, 0x03, // 151: load contends of $03(snake length) to x register
+        0xa9, 0x00, // 152: loads 0(color black )into the accumulator 
+        0x81, 0x10, // 153: stores contents of accumulator in memory location $10(head location) + x register
+        0xa2, 0x00, // 154: loads 0 into x register
+        0xa9, 0x01, // 155: loads 1 into the accumlator
+        0x81, 0x10, // 156: stores contents of accumulator in memory location $10 + 0 (paint head)
+        0x60, // 157: rts
+        /*
         0xa2, 0x00, // set the value of the X register to 0 
         0xa9, 0x01, // set the value of the A register to 1
         0x81, 0x10, // dereference to the memory address that's stored at address $10 (the two bytes for the location of the head of the snake) and set its value to the one stored in register A
@@ -283,7 +285,7 @@ main :: proc()
         0x81, 0x01, // dereference to the memory address that's stored at address$10, add the length of the snake to it, and store the value of  register A (0) in the resulting address. This draws a black pixel on the tail. Because the snake is moving, the head "draws" on the screen in white as it moves, and the tail works as an eraser, erasing the white trail using black pixels
         //0x81, 0x10, //  dereference to the memory address that's stored at address $10 (the two bytes for the location of the head of the snake) and set its value to the one stored in register A
         0x60, // rts
-        
+        */
         // spinWheels:
         0xa6, 0x00,
         

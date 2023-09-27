@@ -307,7 +307,7 @@ main :: proc()
     
     if DEBUG_ON 
     {
-        debug_data.State = debug_state.NORMAL;
+        debug_data.State = debug_state.STARTUP;
         Cpu : cpu; 
         Load(&Cpu, Game);
         Reset(&Cpu);
@@ -322,6 +322,19 @@ main :: proc()
             {
                 RunOpcode(&Cpu);
                 debug_data.State = debug_state.BREAKPOINT;
+            }
+            else if debug_data.State == debug_state.RESET
+            {
+                debug_data.State = debug_state.STARTUP;
+                //Load(&Cpu, Game);
+                Reset(&Cpu);
+                for i in 0x0200..<0x600
+                {
+                    MemWrite(&Cpu, cast(u16)i, 0);
+                }
+                // NOTE(Barret5Ocal): this is wierd. do i even care about this. 
+                sdl2.RenderClear(SdlPackage.Renderer);
+                sdl2.RenderPresent(SdlPackage.Renderer);
             }
             debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
             

@@ -9,9 +9,11 @@ UI_HEIGHT :: 700;
 
 debug_state :: enum
 {
+    STARTUP,
     NORMAL,
     BREAKPOINT,
     STEPONCE,
+    RESET,
 }
 
 debug_data := struct 
@@ -121,8 +123,6 @@ CreateUIWindow :: proc()
     
 }
 
-BreakLine : int = -1;
-
 UISetup :: proc()
 {
     r : int =0;
@@ -145,7 +145,6 @@ UISetup :: proc()
         
         DebugCodeData[r] = {Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false};
         
-        if r == BreakLine do DebugCodeData[r].Breakpoint = true;
         
         i += cast(int)(Opcode.Len - 1); 
         
@@ -190,12 +189,13 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     @static opts := mu.Options{.NO_CLOSE};
     mu.begin(ctx);
     
-    if mu.window(ctx, "Game Code", {40, 40, 250, 450}, opts)
+    if mu.window(ctx, "Game Code", {40, 40, 350, 450}, opts)
     {
         
         for e, i in DebugCodeData
         {
-            mu.layout_row(ctx, {54, 25, 100, -1}, 0);
+            mu.layout_row(ctx, {54, 25, 100, 54, 54}, 0);
+            mu.checkbox(ctx, "", &DebugCodeData[i].Breakpoint);
             mu.label(ctx, fmt.tprintf("%i", i));
             Opcode := OpcodeMap[e.Code];
             mu.label(ctx, fmt.tprintf("%s", Opcode.Mnemonic));
@@ -221,33 +221,53 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
     }
     
-    if mu.window(ctx, "Screen Data", {300, 40, 200, 450}, opts)
+    if mu.window(ctx, "Screen Data", {400, 40, 100, 400}, opts)
     {
         for i in 0x0200..<0x600
         {
             ColorIndex := MemRead(Cpu, cast(u16)i);
-            mu.layout_row(ctx, {54, 25, 100, -1}, 0);
-            mu.label(ctx, fmt.tprintf("%i", i));
-            mu.label(ctx, fmt.tprintf("%i", ColorIndex));
+            if ColorIndex > 0 
+            {
+                mu.layout_row(ctx, {54, 25, 100, -1}, 0);
+                mu.label(ctx, fmt.tprintf("%i", i));
+                mu.label(ctx, fmt.tprintf("%i", ColorIndex));
+            }
         }
     }
     
     // TODO(Barret5Ocal): need to be able to put breakpoints on individual points in the code. 
-    if mu.window(ctx, "BreakPoints", {40, 500, 200, 150}, opts) 
+    if mu.window(ctx, "Interface", {40, 500, 200, 150}, opts) 
     {
-        if .SUBMIT in mu.button(ctx, "Break Code")
+        if debug_data.State == debug_state.STARTUP
         {
-            if debug_data.State == debug_state.NORMAL do debug_data.State = debug_state.BREAKPOINT;
-            else if debug_data.State == debug_state.BREAKPOINT do debug_data.State = debug_state.NORMAL;
-            
-        }
-        
-        if .SUBMIT in mu.button(ctx, "Step")
-        {
-            if debug_data.State  == debug_state.BREAKPOINT
+            if .SUBMIT in mu.button(ctx, "Run Code")
             {
-                debug_data.State = debug_state.STEPONCE;
+                if debug_data.State == debug_state.STARTUP do debug_data.State = debug_state.NORMAL;
             }
+        }
+        else 
+        {
+            if .SUBMIT in mu.button(ctx, "Break Code")
+            {
+                if debug_data.State == debug_state.NORMAL do debug_data.State = debug_state.BREAKPOINT;
+                else if debug_data.State == debug_state.BREAKPOINT do debug_data.State = debug_state.NORMAL;
+                
+            }
+            
+            if .SUBMIT in mu.button(ctx, "Step")
+            {
+                if debug_data.State  == debug_state.BREAKPOINT
+                {
+                    debug_data.State = debug_state.STEPONCE;
+                }
+            }
+            
+            if .SUBMIT in mu.button(ctx, "Reset")
+            {
+                
+                debug_data.State = debug_state.RESET;
+            }
+            
         }
         
         mu.layout_row(ctx, {64, -1}, 0);

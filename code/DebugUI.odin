@@ -229,7 +229,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
             if ColorIndex > 0 
             {
                 mu.layout_row(ctx, {54, 25, 100, -1}, 0);
-                mu.label(ctx, fmt.tprintf("%i", i));
+                mu.label(ctx, fmt.tprintf("0x%X", i));
                 mu.label(ctx, fmt.tprintf("%i", ColorIndex));
             }
         }
@@ -284,7 +284,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         }
     }
     
-    if mu.window(ctx, "Cpu", {300, 500, 200, 200}, opts)
+    if mu.window(ctx, "Watch", {300, 500, 200, 200}, opts)
     {
         mu.layout_row(ctx, {64, -1}, 0);
         mu.label(ctx, fmt.tprintf("Register A"));
@@ -303,10 +303,10 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         mu.label(ctx, fmt.tprintf("Inputs: 0x%X", Inputs));
         
         mu.layout_row(ctx, {100}, 0);
-        mu.label(ctx, fmt.tprintf("Snake Head: %v", MemReadu16(Cpu, 0x10)));
+        mu.label(ctx, fmt.tprintf("Snake Head: 0x%X", MemReadu16(Cpu, 0x10)));
         
         mu.layout_row(ctx, {100}, 0);
-        mu.label(ctx, fmt.tprintf("Snake Length: %v", MemRead(Cpu, 0x03)));
+        mu.label(ctx, fmt.tprintf("Snake Length: 0x%X", MemRead(Cpu, 0x03)));
         
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Direction: 0x%X", MemRead(Cpu, 0x02)));

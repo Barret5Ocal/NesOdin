@@ -267,13 +267,17 @@ main :: proc()
         
         // NOTE(Barret5Ocal): Actually this does not make that much sense. How does this code erase the tail for the snake if it is going up or down. The position in the texture goes up or down a stride when that happens. So how does adding the lentgh for the snake to the head position do that. Maybe thats still incorrect thinking. The code does not work when the snake is moving left or right either. 
         
+        // NOTE(Barret5Ocal): When the game runs the code for erasing the snakes tail, the address always ends up being 0x0303. The basic idea with this codes is that 0x81 should put a 0 in the part of the screen where the tail should be. Instead I just get 0x0303 everytime. 
+        
+        // NOTE(Barret5Ocal): Hold up! Is $12 supposed to hold a list of all the segments of the snake. Look up to see where that might be happening. Maybe updateSnake
+        
         // drawSnake:
         0xa6, 0x03, // 151: load contends of $03(snake length) to x register
         0xa9, 0x00, // 152: loads 0(color black )into the accumulator 
-        0x81, 0x10, // 153: stores contents of accumulator in memory location $10(head location) + x register
+        0x81, 0x10, // 153: stores contents of accumulator in memory location $10(head location) + x register // NOTE(Barret5Ocal): get 0x0303 alot 
         0xa2, 0x00, // 154: loads 0 into x register
         0xa9, 0x01, // 155: loads 1 into the accumlator
-        0x81, 0x10, // 156: stores contents of accumulator in memory location $10 + 0 (paint head)
+        0x81, 0x10, // 156: stores contents of accumulator in memory location $10 + 0 (paint head) // NOTE(Barret5Ocal): this seems to be working correctly
         0x60, // 157: rts
         /*
         0xa2, 0x00, // set the value of the X register to 0 

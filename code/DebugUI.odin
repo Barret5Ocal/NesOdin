@@ -223,6 +223,8 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     
     if mu.window(ctx, "Screen Data", {400, 40, 100, 400}, opts)
     {
+        
+        
         for i in 0x0200..<0x600
         {
             ColorIndex := MemRead(Cpu, cast(u16)i);
@@ -233,6 +235,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
                 mu.label(ctx, fmt.tprintf("%i", ColorIndex));
             }
         }
+        
     }
     
     // TODO(Barret5Ocal): need to be able to put breakpoints on individual points in the code. 

@@ -138,6 +138,7 @@ GetOperandAddress :: proc(Cpu : ^cpu, Mode : addressing_mode) -> u16
             Base := MemRead(Cpu, Cpu.ProgramCounter);
             
             Ptr : u8 = (cast(u8) Base) + Cpu.RegisterX; 
+            // NOTE(Barret5Ocal): This code just creates an address based on the values that are in Base + the value of register x. The question is why is this used for the sankeDraw code 
             Lo := MemRead(Cpu, cast(u16)Ptr);
             Hi := MemRead(Cpu, cast(u16)Ptr + 1);
             Result :=  (cast(u16)Hi) << 8 | (cast(u16)Lo);
@@ -228,7 +229,10 @@ RunOpcode :: proc(Cpu : ^cpu)
     {
         case 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71: Adc(Cpu, Opcode.AddressingMode);
         
-        case 0xA9 , 0xA5 , 0xAD , 0xBD , 0xB9 , 0xA1 , 0xB1: Lda(Cpu, Opcode.AddressingMode);
+        case 0x29, 0x25, 0x35, 0x2d, 0x3d, 0x39, 0x21, 0x31:  
+        And(Cpu, Opcode.AddressingMode);
+        
+        case 0xA9 , 0xA5 , 0xB5, 0xAD , 0xBD , 0xB9 , 0xA1 , 0xB1: Lda(Cpu, Opcode.AddressingMode);
         
         case 0x85 , 0x95 , 0x8D , 0x9D , 0x99 , 0x81 , 0x91: Sta(Cpu, Opcode.AddressingMode);
         
@@ -384,8 +388,11 @@ RunOpcode :: proc(Cpu : ^cpu)
         }
         
         
+        
         case 0xEA: {}
         case 0x00: return;
+        
+        case: assert(false);
         
     }
     

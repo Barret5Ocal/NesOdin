@@ -274,6 +274,8 @@ main :: proc()
         // drawSnake:
         0xa6, 0x03, // 151: load contends of $03(snake length) to x register
         0xa9, 0x00, // 152: loads 0(color black )into the accumulator 
+        //0x95, 0x10, // this change makes sure that the game erases the square at 0x14 but there is still a square at 0x15. 
+        
         0x81, 0x10, // 153: stores contents of accumulator in memory location $10(head location) + x register // NOTE(Barret5Ocal): get 0x0303 alot 
         0xa2, 0x00, // 154: loads 0 into x register
         0xa9, 0x01, // 155: loads 1 into the accumlator

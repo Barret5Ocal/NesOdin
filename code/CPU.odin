@@ -11,7 +11,8 @@ cpu :: struct
     Status : cpu_flags,
     StackPointer : u8,
     ProgramCounter : u16,
-    Memory : [0xFFFF]u8,
+    //Memory : [0xFFFF]u8,
+    Bus : bus,
 }
 
 addressing_mode :: enum 
@@ -52,12 +53,13 @@ MemWriteu16 :: proc(Cpu : ^cpu, Pos : u16, Data : u16)
 
 MemRead :: proc(Cpu : ^cpu, Address : u16) -> u8
 {
-    return Cpu.Memory[Address];
+    return BusMemRead(&Cpu.Bus, Address);
 }
 
 MemWrite :: proc(Cpu : ^cpu, Address : u16, Value : u8)
 {
-    Cpu.Memory[Address] = Value;
+    //Cpu.Memory[Address] = Value;
+    BusMemWrite(&Cpu.Bus, Address, Value);
 }
 
 StackPop :: proc (Cpu : ^cpu) -> u8
@@ -183,7 +185,12 @@ Reset :: proc(Cpu : ^cpu)
 
 Load :: proc(Cpu : ^cpu, Program : [dynamic]u8)
 {
-    copy(Cpu.Memory[0x0600:], Program[:]);
+    for i in 0 ..=len(Program)
+    {
+        MemWrite(Cpu, cast(u16)(0x0600 + i), Program[i]);
+    }
+    
+    //copy(Cpu.Memory[0x0600:], Program[:]);
     MemWriteu16(Cpu, 0xFFFC, 0x0600);
     
 }

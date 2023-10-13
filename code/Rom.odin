@@ -3,6 +3,8 @@ package NES
 import "core:slice"
 
 NES_TAG : [4]u8 = {0x4E, 0x45, 0x53, 0x1A};
+PRG_ROM_PAGE_SIZE :: 16384;
+CHR_ROM_PAGE_SIZE :: 8192;
 
 morroring :: enum
 {
@@ -40,8 +42,23 @@ NewRom :: proc(Rom : ^rom, Raw : [dynamic]u8) -> (Result : string)
         screen_mirroring = .VERTICAL
     }
     
+    Prg_Rom_Size := cast(uint)Raw[4] * PRG_ROM_PAGE_SIZE;
+    Chr_Rom_Size := cast(uint)Raw[5] * CHR_ROM_PAGE_SIZE;
     
+    Skip_Trainer := Raw[6] & 0b100 != 0;
     
-    return;
+    Prg_Rom_Start : uint = 16;
+    if Skip_Trainer {Prg_Rom_Start += 512;} else {Prg_Rom_Start += 0;}
+    
+    Chr_Rom_Start := Prg_Rom_Start + Prg_Rom_Size; 
+    
+    src := Raw[Prg_Rom_Start:(Prg_Rom_Start + Prg_Rom_Size)];
+    append(&Rom.Prg_rom, ..src);
+    src = Raw[Chr_Rom_Start:(Chr_Rom_Start + Chr_Rom_Size)];
+    append(&Rom.Chr_rom, ..src);
+    Rom.Mapper = Mapper;
+    Rom.Mirroring = screen_mirroring; 
+    
+    return "It worked";
     
 }

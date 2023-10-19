@@ -35,7 +35,7 @@ debug_code_data_entry :: struct
 }
 
 // TODO(Barret5Ocal): Need to find a way to get the size of this array
-DebugCodeData : [164]debug_code_data_entry;
+DebugCodeData : [dynamic]debug_code_data_entry;
 
 state := struct
 {
@@ -123,27 +123,27 @@ CreateUIWindow :: proc()
     
 }
 
-UISetup :: proc()
+UISetup :: proc(Rom : ^rom)
 {
     r : int =0;
-    for i := 0; i < len(Game); i += 1 //for g in Game 
+    for i := 0; i < len(Rom.Prg_rom); i += 1 //for g in Game 
     {
-        g := Game[i];
+        g := Rom.Prg_rom[i];
         Opcode := OpcodeMap[g];
         
         Arg1 : u8;
         Arg2 : u8;
         if Opcode.Len == 2 
         {
-            Arg1 = Game[i + 1];
+            Arg1 = Rom.Prg_rom[i + 1];
         }
         else if Opcode.Len == 3 
         {
-            Arg1 = Game[i + 1]; 
-            Arg2 = Game[i + 2];
+            Arg1 = Rom.Prg_rom[i + 1]; 
+            Arg2 = Rom.Prg_rom[i + 2];
         }
         
-        DebugCodeData[r] = {Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false};
+        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false});
         
         
         i += cast(int)(Opcode.Len - 1); 

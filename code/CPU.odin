@@ -53,7 +53,8 @@ MemWriteu16 :: proc(Cpu : ^cpu, Pos : u16, Data : u16)
 
 MemRead :: proc(Cpu : ^cpu, Address : u16) -> u8
 {
-    return BusMemRead(&Cpu.Bus, Address);
+    // NOTE(Barret5Ocal): Bus get erased after this gets called. dont know why
+    return BusMemRead(Cpu, Address);
 }
 
 MemWrite :: proc(Cpu : ^cpu, Address : u16, Value : u8)

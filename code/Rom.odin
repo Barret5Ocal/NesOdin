@@ -21,7 +21,7 @@ rom :: struct
     Mirroring : morroring, 
 }
 
-NewRom :: proc(Rom : ^rom, Raw : [dynamic]u8) -> (Result : string)
+NewRom :: proc(Rom : ^rom, Raw : []u8) -> (Result : string)
 {
     if !slice.equal(Raw[0:4], NES_TAG[:])
     {

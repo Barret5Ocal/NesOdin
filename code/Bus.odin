@@ -13,25 +13,26 @@ RAM_MIRRORS_END : u16 : 0x1FFF;
 PPU_REGISTERS : u16 : 0x2000;
 PPU_REGISTERS_MIRRORS_END : u16 : 0x3FFF; 
 
-ReadPrgRom :: proc(Bus : ^bus, Addr : u16) -> u8
+ReadPrgRom :: proc(Cpu : ^cpu, Addr : u16) -> u8
 {
     Addr := Addr;
     Addr -= 0x8000;
-    if len(Bus.Rom.Prg_rom) == 0x4000 && Addr >= 0x4000
+    // NOTE(Barret5Ocal): what up with len(Cpu.Bus.Rom.Prg_rom) == 0x4000
+    if len(Cpu.Bus.Rom.Prg_rom) == 0x4000 && Addr >= 0x4000
     {
         Addr = Addr % 0x4000;
     }
-    return Bus.Rom.Prg_rom[Addr];
+    return Cpu.Bus.Rom.Prg_rom[Addr];
 }
 
-BusMemRead :: proc(Bus : ^bus, Addr : u16) -> u8
+BusMemRead :: proc(Cpu: ^cpu, Addr : u16) -> u8
 {
     switch Addr 
     {
         case RAM ..= RAM_MIRRORS_END: 
         {
             MirrorDownAddr := Addr & 0b00000111_11111111;
-            return Bus.CpuVRam[MirrorDownAddr];
+            return Cpu.Bus.CpuVRam[MirrorDownAddr];
         }
         case PPU_REGISTERS ..= PPU_REGISTERS_MIRRORS_END:
         {
@@ -40,7 +41,7 @@ BusMemRead :: proc(Bus : ^bus, Addr : u16) -> u8
         }
         case 0x8000..=0xFFFF:
         {
-            ReadPrgRom(Bus, Addr);
+            ReadPrgRom(Cpu, Addr);
         }
         case : 
         {

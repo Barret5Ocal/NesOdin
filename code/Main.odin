@@ -20,7 +20,6 @@ WIN_HEIGHT :: 32;
 
 DEBUG_ON :: true; 
 
-Game : [dynamic]u8; 
 
 main :: proc()
 {
@@ -43,21 +42,35 @@ main :: proc()
     SdlPackage.Texture = sdl2.CreateTexture(SdlPackage.Renderer, cast(u32)sdl2.PixelFormatEnum.RGB24, sdl2.TextureAccess.STREAMING, WIN_WIDTH, WIN_HEIGHT);
     
     if DEBUG_ON do CreateUIWindow();
+    
+    
+    //Bus : bus; 
+    Cpu : cpu;
+    //Rom : rom;
+    
+    //Game : [dynamic]u8; 
+    
     Data, ok := os.read_entire_file("snake.nes", context.allocator);
     defer delete(Data, context.allocator);
+    
+    Result := NewRom(&Cpu.Bus.Rom, Data);
+    
+    //Cpu.Bus.Rom = &Rom;
+    //Cpu.Bus = &Bus;
+    //NewRom(&Rom, Data);
     
     OpcodeMap := CreateOpCodeMap();
     defer delete(OpcodeMap);
     
     
-    if DEBUG_ON do UISetup();
+    if DEBUG_ON do UISetup(&Cpu.Bus.Rom);
     // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.
     
     if DEBUG_ON 
     {
         debug_data.State = debug_state.STARTUP;
-        Cpu : cpu; 
-        Load(&Cpu, Game);
+        //Cpu : cpu; 
+        //Load(&Cpu, Game);
         Reset(&Cpu);
         
         for
@@ -93,7 +106,7 @@ main :: proc()
     else 
     {
         Cpu : cpu; 
-        Load(&Cpu, Game);
+        //Load(&Cpu, Game);
         Reset(&Cpu);
         
         RunWithCallback(&Cpu, &SdlPackage, true);

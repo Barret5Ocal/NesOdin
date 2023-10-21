@@ -123,24 +123,24 @@ CreateUIWindow :: proc()
     
 }
 
-UISetup :: proc(Rom : ^rom)
+UISetup :: proc(Data : []u8) //Rom : ^rom)
 {
     r : int =0;
-    for i := 0; i < len(Rom.Prg_rom); i += 1 //for g in Game 
+    for i := 0; i < len(Data); i += 1 //for g in Game 
     {
-        g := Rom.Prg_rom[i];
+        g := Data[i];
         Opcode := OpcodeMap[g];
         
         Arg1 : u8;
         Arg2 : u8;
         if Opcode.Len == 2 
         {
-            Arg1 = Rom.Prg_rom[i + 1];
+            Arg1 = Data[i + 1];
         }
         else if Opcode.Len == 3 
         {
-            Arg1 = Rom.Prg_rom[i + 1]; 
-            Arg2 = Rom.Prg_rom[i + 2];
+            Arg1 = Data[i + 1]; 
+            Arg2 = Data[i + 2];
         }
         
         append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false});

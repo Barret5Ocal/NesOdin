@@ -15,8 +15,8 @@ morroring :: enum
 
 rom :: struct 
 {
-    Prg_rom : [dynamic]u8,
-    Chr_rom : [dynamic]u8,
+    Prg_rom : []u8,
+    Chr_rom : []u8,
     Mapper : u8,
     Mirroring : morroring, 
 }
@@ -52,10 +52,11 @@ NewRom :: proc(Rom : ^rom, Raw : []u8) -> (Result : string)
     
     Chr_Rom_Start := Prg_Rom_Start + Prg_Rom_Size; 
     
-    src := Raw[Prg_Rom_Start:(Prg_Rom_Start + Prg_Rom_Size)];
-    append(&Rom.Prg_rom, ..src);
-    src = Raw[Chr_Rom_Start:(Chr_Rom_Start + Chr_Rom_Size)];
-    append(&Rom.Chr_rom, ..src);
+    // NOTE(Barret5Ocal): this is not copying correctly
+    Rom.Prg_rom = Raw[Prg_Rom_Start:(Prg_Rom_Start + Prg_Rom_Size)];
+    //append(&Rom.Prg_rom, ..src);
+    Rom.Chr_rom = Raw[Chr_Rom_Start:(Chr_Rom_Start + Chr_Rom_Size)];
+    //append(&Rom.Chr_rom, ..src);
     Rom.Mapper = Mapper;
     Rom.Mirroring = screen_mirroring; 
     

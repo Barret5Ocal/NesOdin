@@ -123,8 +123,9 @@ CreateUIWindow :: proc()
     
 }
 
-UISetup :: proc(Data : []u8) //Rom : ^rom)
+UISetup :: proc(Cpu : ^cpu) //Rom : ^rom)
 {
+    Data := Cpu.Bus.Rom.Prg_rom;
     r : int =0;
     for i := 0; i < len(Data); i += 1 //for g in Game 
     {
@@ -191,7 +192,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     
     if mu.window(ctx, "Game Code", {40, 40, 350, 450}, opts)
     {
-        
+        ///*
         for e, i in DebugCodeData
         {
             mu.layout_row(ctx, {54, 25, 100, 54, 54}, 0);
@@ -218,7 +219,9 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
             }
             
         }
-        
+        //*/
+        // TODO(Barret5Ocal): Need to read the rom
+        //Cpu.Bus.Rom
     }
     
     if mu.window(ctx, "Screen Data", {400, 40, 100, 400}, opts)
@@ -238,7 +241,6 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
     }
     
-    // TODO(Barret5Ocal): need to be able to put breakpoints on individual points in the code. 
     if mu.window(ctx, "Interface", {40, 500, 200, 150}, opts) 
     {
         if debug_data.State == debug_state.STARTUP

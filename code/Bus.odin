@@ -2,6 +2,34 @@ package NES
 
 import "core:fmt"
 
+//  _______________ $10000  _______________
+// | PRG-ROM       |       |               |
+// | Upper Bank    |       |               |
+// |_ _ _ _ _ _ _ _| $C000 | PRG-ROM       |
+// | PRG-ROM       |       |               |
+// | Lower Bank    |       |               |
+// |_______________| $8000 |_______________|
+// | SRAM          |       | SRAM          |
+// |_______________| $6000 |_______________|
+// | Expansion ROM |       | Expansion ROM |
+// |_______________| $4020 |_______________|
+// | I/O Registers |       |               |
+// |_ _ _ _ _ _ _ _| $4000 |               |
+// | Mirrors       |       | I/O Registers |
+// | $2000-$2007   |       |               |
+// |_ _ _ _ _ _ _ _| $2008 |               |
+// | I/O Registers |       |               |
+// |_______________| $2000 |_______________|
+// | Mirrors       |       |               |
+// | $0000-$07FF   |       |               |
+// |_ _ _ _ _ _ _ _| $0800 |               |
+// | RAM           |       | RAM           |
+// |_ _ _ _ _ _ _ _| $0200 |               |
+// | Stack         |       |               |
+// |_ _ _ _ _ _ _ _| $0100 |               |
+// | Zero Page     |       |               |
+// |_______________| $0000 |_______________|
+
 bus :: struct
 {
     CpuVRam : [2048]u8,
@@ -17,7 +45,6 @@ ReadPrgRom :: proc(Cpu : ^cpu, Addr : u16) -> u8
 {
     Addr := Addr;
     Addr -= 0x8000;
-    // NOTE(Barret5Ocal): what up with len(Cpu.Bus.Rom.Prg_rom) == 0x4000
     if len(Cpu.Bus.Rom.Prg_rom) == 0x4000 && Addr >= 0x4000
     {
         Addr = Addr % 0x4000;
@@ -41,7 +68,7 @@ BusMemRead :: proc(Cpu: ^cpu, Addr : u16) -> u8
         }
         case 0x8000..=0xFFFF:
         {
-            ReadPrgRom(Cpu, Addr);
+            return ReadPrgRom(Cpu, Addr);
         }
         case : 
         {

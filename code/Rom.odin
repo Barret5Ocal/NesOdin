@@ -47,6 +47,7 @@ NewRom :: proc(Rom : ^rom, Raw : []u8) -> (Result : string)
     
     Skip_Trainer := Raw[6] & 0b100 != 0;
     
+    // NOTE(Barret5Ocal): The in-program debugger is showing the porgram starting at the 1536th instruction. is that a problem with the source or my code
     Prg_Rom_Start : uint = 16;
     if Skip_Trainer {Prg_Rom_Start += 512;} else {Prg_Rom_Start += 0;}
     

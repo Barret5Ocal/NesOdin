@@ -195,7 +195,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         ///*
         for e, i in DebugCodeData
         {
-            mu.layout_row(ctx, {54, 25, 100, 54, 54}, 0);
+            mu.layout_row(ctx, {54, 50, 100, 54, 54}, 0);
             mu.checkbox(ctx, "", &DebugCodeData[i].Breakpoint);
             mu.label(ctx, fmt.tprintf("%i", i));
             Opcode := OpcodeMap[e.Code];
@@ -226,8 +226,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
     
     if mu.window(ctx, "Screen Data", {400, 40, 100, 400}, opts)
     {
-        
-        
+        /*
         for i in 0x0200..<0x600
         {
             ColorIndex := MemRead(Cpu, cast(u16)i);
@@ -238,7 +237,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
                 mu.label(ctx, fmt.tprintf("%i", ColorIndex));
             }
         }
-        
+        */
     }
     
     if mu.window(ctx, "Interface", {40, 500, 200, 150}, opts) 
@@ -302,7 +301,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         mu.layout_row(ctx, {64, -1}, 0);
         mu.label(ctx, fmt.tprintf("Register Y"));
         mu.label(ctx, fmt.tprintf("%i", Cpu.RegisterY));
-        
+        /*
         Inputs := MemRead(Cpu, 0xff);
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Inputs: 0x%X", Inputs));
@@ -315,7 +314,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
         
         mu.layout_row(ctx, {100}, 0);
         mu.label(ctx, fmt.tprintf("Direction: 0x%X", MemRead(Cpu, 0x02)));
-        
+        */
     }
     
     mu.end(ctx);

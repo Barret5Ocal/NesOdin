@@ -43,14 +43,11 @@ main :: proc()
     
     if DEBUG_ON do CreateUIWindow();
     
-    
-    //Bus : bus; 
     Cpu : cpu;
-    //Rom : rom;
     
     //Game : [dynamic]u8; 
     
-    Data, ok := os.read_entire_file("snake.nes", context.allocator);
+    Data, ok := os.read_entire_file("snake.nes");
     defer delete(Data, context.allocator);
     
     Result := NewRom(&Cpu.Bus.Rom, Data);

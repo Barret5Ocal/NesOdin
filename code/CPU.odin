@@ -395,8 +395,6 @@ RunOpcode :: proc(Cpu : ^cpu)
             UpdateZeroAndNegativeFlags(Cpu, Cpu.RegisterA);
         }
         
-        
-        
         case 0xEA: {}
         case 0x00: return;
         

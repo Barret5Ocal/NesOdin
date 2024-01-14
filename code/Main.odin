@@ -20,7 +20,6 @@ WIN_HEIGHT :: 32;
 
 DEBUG_ON :: true; 
 
-
 main :: proc()
 {
     fmt.eprintln("ProgramStart");
@@ -60,8 +59,6 @@ main :: proc()
     defer delete(OpcodeMap);
     
     
-    if DEBUG_ON do UISetup(&Cpu);
-    // TODO(Barret5Ocal): I need to be able to know where in this code I am at. I might be able to subtract the 0x0600 from the ProgramCounter to be able to get an index into game.
     
     if DEBUG_ON 
     {
@@ -69,16 +66,19 @@ main :: proc()
         //Cpu : cpu; 
         //Load(&Cpu, Game);
         Reset(&Cpu);
+        UISetup(&Cpu);
+        debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
         
-        for
+        Break : bool;
+        for Break == false
         {
             if debug_data.State == debug_state.NORMAL
             {
-                RunOpcode(&Cpu);
+                Break = RunOpcode(&Cpu);
             }
             else if debug_data.State == debug_state.STEPONCE
             {
-                RunOpcode(&Cpu);
+                Break = RunOpcode(&Cpu);
                 debug_data.State = debug_state.BREAKPOINT;
             }
             else if debug_data.State == debug_state.RESET
@@ -96,15 +96,19 @@ main :: proc()
             }
             debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
             
-            EngineLevel(&Cpu, &SdlPackage);
+            if !EngineLevel(&Cpu, &SdlPackage)
+            {
+                break;
+            }
         }
         
     }
     else 
     {
-        Cpu : cpu; 
+        //Cpu : cpu; 
         //Load(&Cpu, Game);
         Reset(&Cpu);
+        //if DEBUG_ON do UISetup(&Cpu);
         
         RunWithCallback(&Cpu, &SdlPackage, true);
         //sdl2.UpdateWindowSurface(SdlPackage.Window);
@@ -114,13 +118,12 @@ main :: proc()
 
 Inputs : inputs; 
 
-EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
+EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package) -> bool 
 {
     // TODO(Barret5Ocal): Figure out how to pass info into anonymous functions
     ScreenState : [WIN_WIDTH * 3 * WIN_HEIGHT]u8 = {};
     
-    GetInputs(&Inputs);
-    
+    Quit := GetInputs(&Inputs);
     
     if DEBUG_ON do UpdateUI(Cpu, &Inputs);
     
@@ -151,6 +154,8 @@ EngineLevel :: proc(Cpu : ^cpu, Sdl : ^sdl_package)
     if DEBUG_ON do RenderUI();
     
     time.sleep(cast(time.Duration)time.duration_nanoseconds(70000));
+    
+    return Quit;
 }
 
 ReadScreenState :: proc (Cpu : ^cpu, Frame : ^[WIN_WIDTH * 3 * WIN_HEIGHT]u8) -> bool 

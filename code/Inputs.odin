@@ -36,7 +36,7 @@ inputs :: struct
 Mousepersist : v2;
 //Wheelpersist : v2;
 
-GetInputs :: proc(Inputs : ^inputs)
+GetInputs :: proc(Inputs : ^inputs) -> bool
 {
     Inputs^ = inputs{};
     Inputs.MouseMotion = Mousepersist;
@@ -167,8 +167,16 @@ GetInputs :: proc(Inputs : ^inputs)
                 }
             }
             
-            
+            case .WINDOWEVENT:
+            {
+                if e.window.event == sdl2.WindowEventID.CLOSE
+                {
+                    return false;
+                }
+            }
         }
     }
+    
+    return true;
     
 }

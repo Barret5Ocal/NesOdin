@@ -210,21 +210,20 @@ Run :: proc (Cpu : ^cpu)
 
 RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
 {
-    for 
+    Break : bool;
+    for Break == false
     {
-        if debug_data.State == debug_state.NORMAL 
+        Break = RunOpcode(Cpu);
+        // NOTE(Barret5Ocal): DEBUG
+        if !EngineLevel(Cpu, Sdl)
         {
-            
-            RunOpcode(Cpu);
-            
-            // NOTE(Barret5Ocal): DEBUG
+            break;
         }
-        
-        if Callback do EngineLevel(Cpu, Sdl);
     }
+    
 }
 
-RunOpcode :: proc(Cpu : ^cpu)
+RunOpcode :: proc(Cpu : ^cpu) -> bool
 {
     Code := MemRead(Cpu, Cpu.ProgramCounter);
     Cpu.ProgramCounter += 1;
@@ -396,7 +395,7 @@ RunOpcode :: proc(Cpu : ^cpu)
         }
         
         case 0xEA: {}
-        case 0x00: return;
+        case 0x00: return true;
         
         case: assert(false);
         
@@ -407,6 +406,7 @@ RunOpcode :: proc(Cpu : ^cpu)
         Cpu.ProgramCounter += cast(u16)(Opcode.Len - 1);
     }
     
+    return false;
 }
 
 SetRegisterA :: proc(Cpu : ^cpu, Result : u8)

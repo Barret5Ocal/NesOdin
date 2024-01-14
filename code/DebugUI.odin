@@ -125,32 +125,37 @@ CreateUIWindow :: proc()
 
 UISetup :: proc(Cpu : ^cpu) //Rom : ^rom)
 {
-    Data := Cpu.Bus.Rom.Prg_rom;
-    r : int =0;
-    for i := 0; i < len(Data); i += 1 //for g in Game 
+    // NOTE(Barret5Ocal): The problem is at 161. the number wraps and causes lag. I had this problem before but i cant remember how it was solved
+    DebugPC := Cpu.ProgramCounter;
+    
+    
+    //r : int = 0;
+    for i := 0; i < 200; i += 1//for g in Game 
     {
-        g := Data[i];
-        Opcode := OpcodeMap[g];
+        //DebugPCState := DebugPC;
+        Code := MemRead(Cpu, DebugPC);
+        Opcode := OpcodeMap[Code];
         
         Arg1 : u8;
         Arg2 : u8;
         if Opcode.Len == 2 
         {
-            Arg1 = Data[i + 1];
+            Arg1 = MemRead(Cpu, DebugPC + 1);
         }
         else if Opcode.Len == 3 
         {
-            Arg1 = Data[i + 1]; 
-            Arg2 = Data[i + 2];
+            Arg1 = MemRead(Cpu, DebugPC + 1);
+            Arg2 = MemRead(Cpu, DebugPC + 2);
         }
         
-        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, cast(u16)i, r, false});
+        append(&DebugCodeData, cast(debug_code_data_entry){Opcode.Code, Opcode.Len, Arg1, Arg2, DebugPC - Cpu.ProgramCounter, i, false});
         
         
-        i += cast(int)(Opcode.Len - 1); 
+        DebugPC += cast(u16)Opcode.Len; 
         
-        r += 1; 
+        //r += 1; 
         
+        //if Code == 0 do break;
     }
     
     //debug_data.State = debug_state.BREAKPOINT; 
@@ -208,6 +213,7 @@ UpdateUI :: proc(Cpu : ^cpu, Inputs : ^inputs)
             {
                 mu.label(ctx, fmt.tprintf("0x%X 0x%X", e.Arg1, e.Arg2));
             }
+            
             
             if e.RealPosition == debug_data.ProgramCounter
             {

@@ -210,6 +210,7 @@ Run :: proc (Cpu : ^cpu)
 
 RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
 {
+    
     Break : bool;
     for Break == false
     {
@@ -219,8 +220,8 @@ RunWithCallback :: proc (Cpu : ^cpu, Sdl : ^sdl_package, Callback : bool)
         {
             break;
         }
+        
     }
-    
 }
 
 RunOpcode :: proc(Cpu : ^cpu) -> bool

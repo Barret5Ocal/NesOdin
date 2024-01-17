@@ -130,7 +130,7 @@ UISetup :: proc(Cpu : ^cpu) //Rom : ^rom)
     
     
     //r : int = 0;
-    for i := 0; i < 200; i += 1//for g in Game 
+    for i := 0; i < 170; i += 1//for g in Game 
     {
         //DebugPCState := DebugPC;
         Code := MemRead(Cpu, DebugPC);

@@ -69,12 +69,14 @@ main :: proc()
         UISetup(&Cpu);
         debug_data.ProgramCounter = Cpu.ProgramCounter - debug_data.ProgramStart;
         
+        Count : int = 0;
         Break : bool;
         for Break == false
         {
             if debug_data.State == debug_state.NORMAL
             {
                 Break = RunOpcode(&Cpu);
+                Count += 1;
             }
             else if debug_data.State == debug_state.STEPONCE
             {
@@ -100,18 +102,15 @@ main :: proc()
             {
                 break;
             }
+            
         }
         
     }
     else 
     {
-        //Cpu : cpu; 
-        //Load(&Cpu, Game);
         Reset(&Cpu);
-        //if DEBUG_ON do UISetup(&Cpu);
         
         RunWithCallback(&Cpu, &SdlPackage, true);
-        //sdl2.UpdateWindowSurface(SdlPackage.Window);
     }
     
 }

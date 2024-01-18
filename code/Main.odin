@@ -47,13 +47,15 @@ main :: proc()
     //Game : [dynamic]u8; 
     
     Data, ok := os.read_entire_file("snake.nes");
+    if !ok
+    {
+        fmt.println("Didn't load rom. check working directory");
+        return
+    }
+    
     defer delete(Data, context.allocator);
     
     Result := NewRom(&Cpu.Bus.Rom, Data);
-    
-    //Cpu.Bus.Rom = &Rom;
-    //Cpu.Bus = &Bus;
-    //NewRom(&Rom, Data);
     
     OpcodeMap := CreateOpCodeMap();
     defer delete(OpcodeMap);

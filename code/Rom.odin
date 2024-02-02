@@ -64,3 +64,38 @@ NewRom :: proc(Rom : ^rom, Raw : []u8) -> (Result : string)
     return "It worked";
     
 }
+
+
+test_rom :: struct 
+{
+    Header : []u8,
+    Trainer : []u8,
+    PgpRom : []u8,
+    ChrRom : []u8,
+}
+
+CreateRom :: proc(Rom : test_rom) -> [dynamic]u8
+{
+    Result : [dynamic]u8; 
+    
+    append(&Result, ..Rom.Header);
+    if Rom.Trainer != nil do append(&Result, ..Rom.Trainer);
+    append(&Result, ..Rom.PgpRom);
+    append(&Result, ..Rom.ChrRom);
+    
+    return Result;
+}
+
+TestRom :: proc() -> rom
+{
+    Rom := CreateRom({
+                         {0x4E, 0x45, 0x53, 0x1A, 0x02, 0x01, 0x31, 00, 00, 00, 00, 00, 00, 00, 00, 00,},
+                         {},
+                         {},
+                         {},});
+    
+    Result : rom ; 
+    //NewRom(&Result, Rom);
+    
+    return Result;
+}
